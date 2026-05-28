@@ -12,7 +12,6 @@ export default function Reservations() {
   return (
     <>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <Text variant="headlineMedium" style={styles.title}>Réservations</Text>
         {reservations.map((r) => (
           <Card key={r.id} style={styles.card}>
             <Card.Content>
@@ -37,13 +36,18 @@ export default function Reservations() {
           </Card>
         ))}
       </ScrollView>
-      <FAB icon="plus" style={styles.fab} onPress={() => {}} />
+      <FAB
+  icon="plus"
+  color="#fff"
+  style={styles.fab}
+  onPress={() => {}}
+/>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#f5f5f5' , paddingTop: 40},
   content: { padding: 16, paddingBottom: 80 },
   title: { fontWeight: 'bold', marginBottom: 16 },
   card: { marginBottom: 12 },

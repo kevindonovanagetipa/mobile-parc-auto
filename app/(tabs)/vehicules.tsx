@@ -12,7 +12,6 @@ export default function Vehicules() {
   return (
     <>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <Text variant="headlineMedium" style={styles.title}>Véhicules</Text>
         {vehicules.map((v) => (
           <Card key={v.id} style={styles.card}>
             <Card.Content style={styles.row}>
@@ -31,14 +30,19 @@ export default function Vehicules() {
           </Card>
         ))}
       </ScrollView>
-      <FAB icon="plus" style={styles.fab} onPress={() => {}} />
+      <FAB
+  icon="plus"
+  color="#fff"
+  style={styles.fab}
+  onPress={() => {}}
+/>
     </>
   );
 }
 
 import { View } from 'react-native';
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 40 },
   content: { padding: 16, paddingBottom: 80 },
   title: { fontWeight: 'bold', marginBottom: 16 },
   card: { marginBottom: 12 },

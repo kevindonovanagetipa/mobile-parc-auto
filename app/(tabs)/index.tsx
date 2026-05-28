@@ -12,8 +12,6 @@ const stats = [
 export default function Dashboard() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text variant="headlineMedium" style={styles.title}>Dashboard</Text>
-
       <View style={styles.grid}>
         {stats.map((stat) => (
           <Card key={stat.label} style={styles.card}>
@@ -42,7 +40,7 @@ export default function Dashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 40 },
   content: { padding: 16 },
   title: { fontWeight: 'bold', marginBottom: 16 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },

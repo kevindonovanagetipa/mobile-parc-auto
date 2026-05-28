@@ -32,7 +32,6 @@ const sections = [
 export default function More() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text variant="headlineMedium" style={styles.title}>Plus</Text>
       {sections.map((section) => (
         <View key={section.titre} style={styles.section}>
           <Text variant="labelLarge" style={styles.sectionTitle}>{section.titre.toUpperCase()}</Text>
@@ -64,7 +63,7 @@ export default function More() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 40 },
   content: { padding: 16, paddingBottom: 32 },
   title: { fontWeight: 'bold', marginBottom: 16 },
   section: { marginBottom: 20 },
