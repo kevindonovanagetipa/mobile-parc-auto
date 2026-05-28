@@ -1,0 +1,2 @@
+import React from 'react'; import { Text, View } from 'react-native'; const m={en_attente:'#ED6C02',validee:'#2E7D32',refusee:'#D32F2F',annulee:'#6B7280',terminee:'#2E7D32',en_cours:'#1565C0',actif:'#2E7D32',bloque:'#D32F2F',online:'#2E7D32',offline:'#6B7280'};
+export default ({status})=><View style={{alignSelf:'flex-start',backgroundColor:m[status]||'#6B7280',paddingHorizontal:8,paddingVertical:3,borderRadius:20}}><Text style={{color:'#fff'}}>{status||'-'}</Text></View>;

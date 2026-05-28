@@ -1,0 +1,1 @@
+import { Alert } from 'react-native'; export const confirmDelete=(onConfirm)=>Alert.alert('Confirmation','Voulez-vous supprimer ?', [{text:'Annuler',style:'cancel'},{text:'Supprimer',style:'destructive',onPress:onConfirm}]);

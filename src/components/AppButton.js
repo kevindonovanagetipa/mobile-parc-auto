@@ -1,0 +1,3 @@
+import React from 'react'; import { ActivityIndicator, Pressable, Text, StyleSheet } from 'react-native'; import colors from '../constants/colors';
+export default function AppButton({title,onPress,loading,disabled,variant='primary'}){const bg=variant==='danger'?colors.danger:colors.primary; return <Pressable style={[s.b,{backgroundColor:bg,opacity:disabled?0.6:1}]} onPress={onPress} disabled={disabled||loading}>{loading?<ActivityIndicator color='#fff'/>:<Text style={s.t}>{title}</Text>}</Pressable>}
+const s=StyleSheet.create({b:{padding:12,borderRadius:8,alignItems:'center',marginVertical:6},t:{color:'#fff',fontWeight:'700'}});
