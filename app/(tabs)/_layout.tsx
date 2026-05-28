@@ -1,34 +1,28 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function TabsLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+    <Tabs>
+      <Tabs.Screen name="index"
+        options={{ title: 'Dashboard',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="view-dashboard" size={24} color={color} /> }}
       />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
+      <Tabs.Screen name="vehicules"
+        options={{ title: 'Véhicules',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="car" size={24} color={color} /> }}
+      />
+      <Tabs.Screen name="reservations"
+        options={{ title: 'Réservations',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="calendar" size={24} color={color} /> }}
+      />
+      <Tabs.Screen name="chauffeurs"
+        options={{ title: 'Chauffeurs',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="account-tie" size={24} color={color} /> }}
+      />
+      <Tabs.Screen name="more"
+        options={{ title: 'Plus',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="dots-horizontal" size={24} color={color} /> }}
       />
     </Tabs>
   );
