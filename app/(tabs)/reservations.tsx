@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   objet:      { fontWeight: 'bold', flex: 1, marginRight: 8 },
   detailRow:  { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   detail:     { color: '#666', flex: 1 },
-  fab:        { position: 'absolute', right: 16, bottom: 16, backgroundColor: '#6200ee' },
+  fab:        { position: 'absolute', right: 16, bottom: 16,backgroundColor: '#1976d2'},
   centered:   { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   errorText:  { color: '#f44336', textAlign: 'center', paddingHorizontal: 24 },
 });

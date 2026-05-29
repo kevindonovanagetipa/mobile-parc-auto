@@ -70,12 +70,12 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="vehicules"
+        name="course"
         options={{
-          title: 'Véhicules',
+          title: 'Course',
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
-              name="car"
+              name="map-marker-path"
               size={24}
               color={color}
             />
