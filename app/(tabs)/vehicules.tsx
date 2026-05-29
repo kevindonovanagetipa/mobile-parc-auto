@@ -42,7 +42,7 @@ export default function Vehicules() {
 
 import { View } from 'react-native';
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 40 },
+  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 5 },
   content: { padding: 16, paddingBottom: 80 },
   title: { fontWeight: 'bold', marginBottom: 16 },
   card: { marginBottom: 12 },

@@ -63,7 +63,7 @@ export default function More() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 40 },
+  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 5 },
   content: { padding: 16, paddingBottom: 32 },
   title: { fontWeight: 'bold', marginBottom: 16 },
   section: { marginBottom: 20 },
