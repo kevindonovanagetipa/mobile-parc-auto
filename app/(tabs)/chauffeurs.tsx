@@ -4,6 +4,7 @@ import { Card, Text, Avatar, Chip, FAB } from 'react-native-paper';
 import { chauffeurService, Chauffeur } from '@/services/chauffeurService';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+const BLUE_LIGHT = '#E3F2FD';
 // --- Helpers ---
 const DISPO_CONFIG: Record<string, { couleur: string }> = {
   Disponible:   { couleur: '#4caf50' },
@@ -166,7 +167,7 @@ export default function Chauffeurs() {
 }
 
 const styles = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 5 },
+  container:  { flex: 1, backgroundColor: BLUE_LIGHT, paddingTop: 5 },
   content:    { padding: 16, paddingBottom: 80 },
   card:       { marginBottom: 12 },
   row:        { flexDirection: 'row', alignItems: 'center', gap: 16 },

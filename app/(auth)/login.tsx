@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, Image } from 'react-native';
 import { TextInput, Button, Card, Text } from 'react-native-paper';
 import { router } from 'expo-router';
 import { ROUTES } from '@/constants/routes';
 import { authService } from '@/services/authService';
+
+const BLUE = '#1565C0';
+const BLUE_LIGHT = '#E3F2FD';
+const BLUE_DARK = '#0D47A1';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -29,11 +33,22 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
+
+      {/* Logo + Nom de l'appli */}
+      <View style={styles.header}>
+        <Image
+          source={require('@/assets/images/logo_parc_auto.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text variant="headlineMedium" style={styles.appName}>Parc Auto</Text>
+        <Text variant="bodySmall" style={styles.appSubtitle}>Gestion de flotte automobile</Text>
+      </View>
+
+      {/* Carte de connexion */}
       <Card style={styles.card}>
         <Card.Content>
-          <Text variant="headlineMedium" style={styles.title}>
-            Connexion
-          </Text>
+          <Text variant="titleLarge" style={styles.title}>Connexion</Text>
 
           <TextInput
             label="Email"
@@ -43,6 +58,9 @@ export default function Login() {
             autoCapitalize="none"
             value={email}
             onChangeText={setEmail}
+            outlineColor={BLUE}
+            activeOutlineColor={BLUE_DARK}
+            left={<TextInput.Icon icon="email-outline" color={BLUE} />}
           />
 
           <TextInput
@@ -52,19 +70,25 @@ export default function Login() {
             style={styles.input}
             value={password}
             onChangeText={setPassword}
+            outlineColor={BLUE}
+            activeOutlineColor={BLUE_DARK}
+            left={<TextInput.Icon icon="lock-outline" color={BLUE} />}
           />
 
           <Button
             mode="contained"
             onPress={handleLogin}
             style={styles.button}
+            contentStyle={styles.buttonContent}
+            buttonColor={BLUE}
             loading={loading}
             disabled={loading}
           >
-            Se connecter
+            {loading ? 'Connexion...' : 'Se connecter'}
           </Button>
         </Card.Content>
       </Card>
+
     </View>
   );
 }
@@ -75,22 +99,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: BLUE_LIGHT,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logo: {
+    width: 70,
+    height: 70,
+    marginBottom: 5,
+    borderRadius: 35,
+  },
+  appName: {
+    fontWeight: 'bold',
+    color: BLUE_DARK,
+    letterSpacing: 1,
+  },
+  appSubtitle: {
+    color: BLUE,
+    marginTop: 4,
+    opacity: 0.8,
   },
   card: {
     width: '100%',
     maxWidth: 400,
     paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
+    elevation: 4,
   },
   title: {
     textAlign: 'center',
     marginBottom: 24,
     fontWeight: 'bold',
+    color: BLUE_DARK,
   },
   input: {
     marginBottom: 16,
+    backgroundColor: '#fff',
   },
   button: {
     marginTop: 8,
+    borderRadius: 8,
+  },
+  buttonContent: {
+    paddingVertical: 6,
   },
 });

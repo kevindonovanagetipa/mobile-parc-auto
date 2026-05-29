@@ -3,11 +3,11 @@ import { Card, Text, List } from 'react-native-paper';
 import { router } from 'expo-router';
 import { ROUTES } from '@/constants/routes';
 
+const BLUE_LIGHT = '#E3F2FD';
 const sections = [
   {
     titre: 'Gestion',
     items: [
-      { label: 'Courses', icon: 'map-marker-path', route: '/courses' },
       { label: 'Déplacements', icon: 'car-arrow-right', route: '/deplacements' },
       { label: 'Périodiques', icon: 'repeat', route: '/periodiques' },
     ],
@@ -63,7 +63,7 @@ export default function More() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 5 },
+  container: { flex: 1, backgroundColor: BLUE_LIGHT, paddingTop: 5 },
   content: { padding: 16, paddingBottom: 32 },
   title: { fontWeight: 'bold', marginBottom: 16 },
   section: { marginBottom: 20 },

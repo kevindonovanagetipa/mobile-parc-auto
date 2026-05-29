@@ -2,38 +2,28 @@ import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, Text, View } from 'react-native';
 
+const BLUE      = '#1565C0';
+const BLUE_DARK = '#0D47A1';
+
 // @ts-ignore: Asset import type declarations
 const logoParcAuto = require('../../assets/images/logo_parc_auto.png');
 
 function HeaderTitle() {
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-      }}
-    >
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       <Image
         source={logoParcAuto}
         style={{
           width: 38,
           height: 38,
           borderWidth: 1.5,
-          borderColor: '#1976d2',
+          borderColor: BLUE,
           borderRadius: 35,
           backgroundColor: '#ffffff',
         }}
         resizeMode="contain"
       />
-
-      <Text
-        style={{
-          fontSize: 20,
-          fontWeight: '700',
-          color: '#1f2937',
-        }}
-      >
+      <Text style={{ fontSize: 20, fontWeight: '700', color: BLUE_DARK, letterSpacing: 0.5 }}>
         Parc Auto
       </Text>
     </View>

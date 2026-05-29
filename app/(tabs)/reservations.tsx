@@ -4,6 +4,7 @@ import { Card, Text, Chip, FAB } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { reservationService, Reservation } from '@/services/reservationService';
 
+const BLUE_LIGHT = '#E3F2FD';
 // --- Helpers ---
 const STATUT_CONFIG: Record<string, { label: string; couleur: string }> = {
   en_attente: { label: 'En attente', couleur: '#ff9800' },
@@ -161,7 +162,7 @@ export default function Reservations() {
 }
 
 const styles = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 5 },
+  container:  { flex: 1, paddingTop: 5, backgroundColor: BLUE_LIGHT },
   content:    { padding: 16, paddingBottom: 80 },
   card:       { marginBottom: 12 },
   row:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },

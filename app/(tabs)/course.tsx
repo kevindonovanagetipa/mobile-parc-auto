@@ -10,9 +10,9 @@ import {
 } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
-
 import { Course, courseService } from '@/services/courseService';
 
+const BLUE_LIGHT = '#E3F2FD';
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 const getStatutColor = (statut: string) => {
@@ -299,7 +299,7 @@ export default function CourseScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: BLUE_LIGHT,
     paddingTop: 5,
   },
   content: {

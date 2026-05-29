@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+const BLUE_LIGHT = '#E3F2FD';
 const stats = [
   { label: 'Véhicules', value: '12', icon: 'car', color: '#6200ee' },
   { label: 'Chauffeurs', value: '8', icon: 'account-tie', color: '#03dac6' },
@@ -40,7 +41,7 @@ export default function Dashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 5 },
+  container: { flex: 1, backgroundColor: BLUE_LIGHT, paddingTop: 5 },
   content: { padding: 16 },
   title: { fontWeight: 'bold', marginBottom: 16 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
