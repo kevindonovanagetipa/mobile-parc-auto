@@ -1,9 +1,32 @@
-import { View, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, StyleSheet, Alert } from 'react-native';
 import { TextInput, Button, Card, Text } from 'react-native-paper';
 import { router } from 'expo-router';
 import { ROUTES } from '@/constants/routes';
+import { authService } from '@/services/authService';
 
 export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authService.login(email, password);
+      router.replace(ROUTES.TABS);
+    } catch (error: any) {
+      Alert.alert('Échec de connexion', error.message || 'Identifiants invalides');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Card style={styles.card}>
@@ -18,6 +41,8 @@ export default function Login() {
             style={styles.input}
             keyboardType="email-address"
             autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
           />
 
           <TextInput
@@ -25,12 +50,16 @@ export default function Login() {
             mode="outlined"
             secureTextEntry
             style={styles.input}
+            value={password}
+            onChangeText={setPassword}
           />
 
           <Button
             mode="contained"
-            onPress={() => router.replace(ROUTES.TABS)}
+            onPress={handleLogin}
             style={styles.button}
+            loading={loading}
+            disabled={loading}
           >
             Se connecter
           </Button>
