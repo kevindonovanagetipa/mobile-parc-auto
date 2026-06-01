@@ -1,4 +1,4 @@
-export const ROUTES = {
+export const ROUTES = { 
   // Auth
   LOGIN: '/(auth)/login' as const,
 
@@ -9,4 +9,7 @@ export const ROUTES = {
   RESERVATIONS: '/(tabs)/reservations' as const,
   CHAUFFEURS: '/(tabs)/chauffeurs' as const,
   MORE: '/(tabs)/more' as const,
+
+  // Reservations
+  ADD_RESERVATION: '/(tabs)/reservations/ajouter' as const,
 } as const;

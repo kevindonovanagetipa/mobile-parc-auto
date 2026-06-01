@@ -1,9 +1,11 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Card, Text, List } from 'react-native-paper';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ROUTES } from '@/constants/routes';
 
 const BLUE_LIGHT = '#E3F2FD';
+
 const sections = [
   {
     titre: 'Gestion',
@@ -30,11 +32,24 @@ const sections = [
 ];
 
 export default function More() {
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+
+      router.replace(ROUTES.LOGIN);
+    } catch (error) {
+      console.log('Erreur lors de la déconnexion :', error);
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {sections.map((section) => (
         <View key={section.titre} style={styles.section}>
-          <Text variant="labelLarge" style={styles.sectionTitle}>{section.titre.toUpperCase()}</Text>
+          <Text variant="labelLarge" style={styles.sectionTitle}>
+            {section.titre.toUpperCase()}
+          </Text>
+
           <Card>
             {section.items.map((item, index) => (
               <List.Item
@@ -42,7 +57,7 @@ export default function More() {
                 title={item.label}
                 left={(props) => <List.Icon {...props} icon={item.icon} />}
                 right={(props) => <List.Icon {...props} icon="chevron-right" />}
-                onPress={() => {}}
+                onPress={() => router.push(item.route as any)}
                 style={index < section.items.length - 1 ? styles.itemBorder : undefined}
               />
             ))}
@@ -55,7 +70,7 @@ export default function More() {
           title="Se déconnecter"
           titleStyle={{ color: '#f44336' }}
           left={(props) => <List.Icon {...props} icon="logout" color="#f44336" />}
-          onPress={() => router.replace(ROUTES.LOGIN)}
+          onPress={handleLogout}
         />
       </Card>
     </ScrollView>
@@ -63,11 +78,32 @@ export default function More() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BLUE_LIGHT, paddingTop: 5 },
-  content: { padding: 16, paddingBottom: 32 },
-  title: { fontWeight: 'bold', marginBottom: 16 },
-  section: { marginBottom: 20 },
-  sectionTitle: { color: '#666', marginBottom: 6, marginLeft: 4 },
-  itemBorder: { borderBottomWidth: 0.5, borderBottomColor: '#eee' },
-  logoutCard: { marginTop: 8 },
+  container: {
+    flex: 1,
+    backgroundColor: BLUE_LIGHT,
+    paddingTop: 5,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  title: {
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    color: '#666',
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+  itemBorder: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#eee',
+  },
+  logoutCard: {
+    marginTop: 8,
+  },
 });

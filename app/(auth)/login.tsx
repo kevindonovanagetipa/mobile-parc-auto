@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getValidToken } from '@/utils/authToken';
 import { View, StyleSheet, Alert, Image } from 'react-native';
 import { TextInput, Button, Card, Text } from 'react-native-paper';
 import { router } from 'expo-router';
@@ -13,6 +14,24 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+  let mounted = true;
+
+  const checkExistingSession = async () => {
+    const token = await getValidToken();
+
+    if (mounted && token) {
+      router.replace(ROUTES.TABS);
+    }
+  };
+
+  checkExistingSession();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -142,6 +161,7 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 8,
     borderRadius: 8,
+    color: '#fff',
   },
   buttonContent: {
     paddingVertical: 6,

@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, Text, View } from 'react-native';
 
-const BLUE      = '#1565C0';
+const BLUE = '#1565C0';
 const BLUE_DARK = '#0D47A1';
 
 // @ts-ignore: Asset import type declarations
@@ -23,7 +23,15 @@ function HeaderTitle() {
         }}
         resizeMode="contain"
       />
-      <Text style={{ fontSize: 20, fontWeight: '700', color: BLUE_DARK, letterSpacing: 0.5 }}>
+
+      <Text
+        style={{
+          fontSize: 20,
+          fontWeight: '700',
+          color: BLUE_DARK,
+          letterSpacing: 0.5,
+        }}
+      >
         Parc Auto
       </Text>
     </View>
@@ -112,6 +120,15 @@ export default function TabsLayout() {
               color={color}
             />
           ),
+        }}
+      />
+
+      {/* Page cachée dans la barre de navigation */}
+      <Tabs.Screen
+        name="reservations/ajouter"
+        options={{
+          href: null,
+          title: 'Nouvelle réservation',
         }}
       />
     </Tabs>
