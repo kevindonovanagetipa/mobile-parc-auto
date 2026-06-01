@@ -5,6 +5,7 @@ import {
   View,
   RefreshControl,
   ActivityIndicator,
+    TouchableOpacity,
 } from 'react-native';
 import { Card, Text, Chip, FAB } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -42,51 +43,60 @@ function ReservationCard({ r }: { r: Reservation }) {
     couleur: '#999',
   };
 
+  const goToUpdateReservation = () => {
+    router.push({
+      pathname: '/(tabs)/reservations/modifier/[id]',
+      params: { id: r.id },
+    });
+  };
+
   return (
-    <Card style={styles.card}>
-      <Card.Content>
-        <View style={styles.row}>
-          <Text variant="titleMedium" style={styles.objet} numberOfLines={1}>
-            {r.objet_deplacement}
-          </Text>
+    <TouchableOpacity activeOpacity={0.8} onPress={goToUpdateReservation}>
+      <Card style={styles.card}>
+        <Card.Content>
+          <View style={styles.row}>
+            <Text variant="titleMedium" style={styles.objet} numberOfLines={1}>
+              {r.objet_deplacement}
+            </Text>
 
-          <Chip
-            style={{ backgroundColor: statut.couleur + '22' }}
-            textStyle={{ color: statut.couleur, fontSize: 11 }}
-          >
-            {statut.label}
-          </Chip>
-        </View>
+            <Chip
+              style={{ backgroundColor: statut.couleur + '22' }}
+              textStyle={{ color: statut.couleur, fontSize: 11 }}
+            >
+              {statut.label}
+            </Chip>
+          </View>
 
-        <View style={styles.detailRow}>
-          <MaterialCommunityIcons name="map-marker" size={14} color="#666" />
-          <Text variant="bodySmall" style={styles.detail}>
-            {r.lieu_depart} → {r.destination_itineraire}
-          </Text>
-        </View>
+          <View style={styles.detailRow}>
+            <MaterialCommunityIcons name="map-marker" size={14} color="#666" />
+            <Text variant="bodySmall" style={styles.detail}>
+              {r.lieu_depart} → {r.destination_itineraire}
+            </Text>
+          </View>
 
-        <View style={styles.detailRow}>
-          <MaterialCommunityIcons name="calendar-arrow-right" size={14} color="#666" />
-          <Text variant="bodySmall" style={styles.detail}>
-            {formatDate(r.date_depart)} à {formatHeure(r.heure_depart)}
-          </Text>
-        </View>
+          <View style={styles.detailRow}>
+            <MaterialCommunityIcons name="calendar-arrow-right" size={14} color="#666" />
+            <Text variant="bodySmall" style={styles.detail}>
+              {formatDate(r.date_depart)} à {formatHeure(r.heure_depart)}
+            </Text>
+          </View>
 
-        <View style={styles.detailRow}>
-          <MaterialCommunityIcons name="calendar-arrow-left" size={14} color="#666" />
-          <Text variant="bodySmall" style={styles.detail}>
-            Retour : {formatDate(r.date_retour)} à {formatHeure(r.heure_retour)}
-          </Text>
-        </View>
+          <View style={styles.detailRow}>
+            <MaterialCommunityIcons name="calendar-arrow-left" size={14} color="#666" />
+            <Text variant="bodySmall" style={styles.detail}>
+              Retour : {formatDate(r.date_retour)} à {formatHeure(r.heure_retour)}
+            </Text>
+          </View>
 
-        <View style={styles.detailRow}>
-          <MaterialCommunityIcons name="account-group" size={14} color="#666" />
-          <Text variant="bodySmall" style={styles.detail}>
-            {r.nombre_passager} passager{r.nombre_passager > 1 ? 's' : ''}
-          </Text>
-        </View>
-      </Card.Content>
-    </Card>
+          <View style={styles.detailRow}>
+            <MaterialCommunityIcons name="account-group" size={14} color="#666" />
+            <Text variant="bodySmall" style={styles.detail}>
+              {r.nombre_passager} passager{r.nombre_passager > 1 ? 's' : ''}
+            </Text>
+          </View>
+        </Card.Content>
+      </Card>
+    </TouchableOpacity>
   );
 }
 

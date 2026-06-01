@@ -1,16 +1,16 @@
-import { Tabs } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Image, Text, View } from 'react-native';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import { Image, Text, View } from "react-native";
 
-const BLUE = '#1565C0';
-const BLUE_DARK = '#0D47A1';
+const BLUE = "#1565C0";
+const BLUE_DARK = "#0D47A1";
 
 // @ts-ignore: Asset import type declarations
-const logoParcAuto = require('../../assets/images/logo_parc_auto.png');
+const logoParcAuto = require("../../assets/images/logo_parc_auto.png");
 
 function HeaderTitle() {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
       <Image
         source={logoParcAuto}
         style={{
@@ -19,7 +19,7 @@ function HeaderTitle() {
           borderWidth: 1.5,
           borderColor: BLUE,
           borderRadius: 35,
-          backgroundColor: '#ffffff',
+          backgroundColor: "#ffffff",
         }}
         resizeMode="contain"
       />
@@ -27,7 +27,7 @@ function HeaderTitle() {
       <Text
         style={{
           fontSize: 20,
-          fontWeight: '700',
+          fontWeight: "700",
           color: BLUE_DARK,
           letterSpacing: 0.5,
         }}
@@ -44,19 +44,19 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: true,
         headerTitle: () => <HeaderTitle />,
-        headerTitleAlign: 'left',
+        headerTitleAlign: "left",
         headerStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: "#ffffff",
         },
         headerShadowVisible: true,
-        tabBarActiveTintColor: '#1976d2',
-        tabBarInactiveTintColor: '#777',
+        tabBarActiveTintColor: "#1976d2",
+        tabBarInactiveTintColor: "#777",
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: "Dashboard",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="view-dashboard"
@@ -70,7 +70,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="course"
         options={{
-          title: 'Course',
+          title: "Course",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="map-marker-path"
@@ -84,13 +84,9 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="reservations"
         options={{
-          title: 'Réservations',
+          title: "Réservations",
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="calendar"
-              size={24}
-              color={color}
-            />
+            <MaterialCommunityIcons name="calendar" size={24} color={color} />
           ),
         }}
       />
@@ -98,7 +94,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="chauffeurs"
         options={{
-          title: 'Chauffeurs',
+          title: "Chauffeurs",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="account-tie"
@@ -112,7 +108,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="more"
         options={{
-          title: 'Plus',
+          title: "Plus",
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons
               name="dots-horizontal"
@@ -128,9 +124,23 @@ export default function TabsLayout() {
         name="reservations/ajouter"
         options={{
           href: null,
-          title: 'Nouvelle réservation',
+          title: "Nouvelle réservation",
         }}
       />
+      <Tabs.Screen
+        name="reservations/modifier/[id]"
+        options={{
+          href: null,
+          title: "Modifier la réservation",
+        }}
+      />
+      <Tabs.Screen
+  name="profil"
+  options={{
+    href: null,
+    title: 'Profil utilisateur',
+  }}
+/>
     </Tabs>
   );
 }

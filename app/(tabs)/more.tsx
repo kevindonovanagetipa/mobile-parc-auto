@@ -8,6 +8,12 @@ const BLUE_LIGHT = '#E3F2FD';
 
 const sections = [
   {
+    titre: 'Compte',
+    items: [
+      { label: 'Profil utilisateur', icon: 'account-circle', route: '/profil' },
+    ],
+  },
+  {
     titre: 'Gestion',
     items: [
       { label: 'Déplacements', icon: 'car-arrow-right', route: '/deplacements' },
