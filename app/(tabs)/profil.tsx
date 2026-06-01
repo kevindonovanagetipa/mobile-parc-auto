@@ -19,10 +19,7 @@ import { router } from 'expo-router';
 
 import { authService, User } from '@/services/authService';
 import { ROUTES } from '@/constants/routes';
-
-const BLUE = '#1565C0';
-const BLUE_LIGHT = '#E3F2FD';
-const BLUE_DARK = '#0D47A1';
+import { COLORS } from '@/constants/colors';
 
 const getInitials = (user?: User | null) => {
   if (!user) return 'U';
@@ -106,7 +103,7 @@ export default function ProfilUtilisateur() {
   if (loading && !user) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={BLUE} />
+        <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.loadingText}>Chargement du profil...</Text>
       </View>
     );
@@ -117,7 +114,11 @@ export default function ProfilUtilisateur() {
       style={styles.container}
       contentContainerStyle={styles.content}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[COLORS.primary]}
+        />
       }
     >
       <Card style={styles.headerCard}>
@@ -155,7 +156,7 @@ export default function ProfilUtilisateur() {
             title="Nom"
             description={user?.nom || 'Non renseigné'}
             left={(props) => (
-              <List.Icon {...props} icon="account" color={BLUE} />
+              <List.Icon {...props} icon="account" color={COLORS.primary} />
             )}
           />
 
@@ -165,7 +166,11 @@ export default function ProfilUtilisateur() {
             title="Prénom"
             description={user?.prenom || 'Non renseigné'}
             left={(props) => (
-              <List.Icon {...props} icon="account-outline" color={BLUE} />
+              <List.Icon
+                {...props}
+                icon="account-outline"
+                color={COLORS.primary}
+              />
             )}
           />
 
@@ -175,7 +180,11 @@ export default function ProfilUtilisateur() {
             title="Email"
             description={user?.email || 'Non renseigné'}
             left={(props) => (
-              <List.Icon {...props} icon="email-outline" color={BLUE} />
+              <List.Icon
+                {...props}
+                icon="email-outline"
+                color={COLORS.primary}
+              />
             )}
           />
 
@@ -185,7 +194,11 @@ export default function ProfilUtilisateur() {
             title="Fonction"
             description={user?.fonction || 'Non renseignée'}
             left={(props) => (
-              <List.Icon {...props} icon="briefcase-outline" color={BLUE} />
+              <List.Icon
+                {...props}
+                icon="briefcase-outline"
+                color={COLORS.primary}
+              />
             )}
           />
 
@@ -195,7 +208,11 @@ export default function ProfilUtilisateur() {
             title="Privilège"
             description={formatPrivilege(user?.privilege)}
             left={(props) => (
-              <List.Icon {...props} icon="shield-account" color={BLUE} />
+              <List.Icon
+                {...props}
+                icon="shield-account"
+                color={COLORS.primary}
+              />
             )}
           />
         </Card>
@@ -211,7 +228,11 @@ export default function ProfilUtilisateur() {
             title="État du compte"
             description={user?.etat_compte || user?.status || 'Actif'}
             left={(props) => (
-              <List.Icon {...props} icon="check-circle-outline" color="#4CAF50" />
+              <List.Icon
+                {...props}
+                icon="check-circle-outline"
+                color={COLORS.success}
+              />
             )}
           />
 
@@ -223,7 +244,11 @@ export default function ProfilUtilisateur() {
                 title="Date de création"
                 description={user.created_at}
                 left={(props) => (
-                  <List.Icon {...props} icon="calendar" color={BLUE} />
+                  <List.Icon
+                    {...props}
+                    icon="calendar"
+                    color={COLORS.primary}
+                  />
                 )}
               />
             </>
@@ -236,7 +261,7 @@ export default function ProfilUtilisateur() {
         icon="refresh"
         onPress={() => loadProfile()}
         style={styles.refreshButton}
-        textColor={BLUE_DARK}
+        textColor={COLORS.primaryDark}
         disabled={loading || refreshing}
       >
         Actualiser le profil
@@ -247,7 +272,8 @@ export default function ProfilUtilisateur() {
         icon="logout"
         onPress={handleLogout}
         style={styles.logoutButton}
-        buttonColor="#f44336"
+        buttonColor={COLORS.error}
+        textColor={COLORS.surface}
       >
         Se déconnecter
       </Button>
@@ -258,7 +284,7 @@ export default function ProfilUtilisateur() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
   },
   content: {
     padding: 16,
@@ -266,18 +292,18 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
   },
   loadingText: {
-    color: BLUE_DARK,
+    color: COLORS.primaryDark,
   },
   headerCard: {
     borderRadius: 18,
     marginBottom: 22,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
     elevation: 4,
   },
   headerContent: {
@@ -285,50 +311,50 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
   },
   avatar: {
-    backgroundColor: BLUE,
+    backgroundColor: COLORS.primary,
     marginBottom: 14,
   },
   avatarLabel: {
-    color: '#ffffff',
+    color: COLORS.surface,
     fontWeight: 'bold',
   },
   name: {
-    color: BLUE_DARK,
+    color: COLORS.primaryDark,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   email: {
-    color: '#666',
+    color: COLORS.textSecondary,
     marginTop: 4,
     textAlign: 'center',
   },
   badge: {
     marginTop: 12,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.primaryLight,
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
   },
   badgeText: {
-    color: BLUE_DARK,
+    color: COLORS.primaryDark,
     fontWeight: '700',
   },
   section: {
     marginBottom: 20,
   },
   sectionTitle: {
-    color: '#666',
+    color: COLORS.textSecondary,
     marginBottom: 6,
     marginLeft: 4,
   },
   card: {
     borderRadius: 14,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
   },
   refreshButton: {
     borderRadius: 10,
     marginBottom: 12,
-    borderColor: BLUE,
+    borderColor: COLORS.primary,
   },
   logoutButton: {
     borderRadius: 10,

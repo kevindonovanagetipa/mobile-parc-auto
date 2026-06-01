@@ -12,7 +12,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { Course, courseService } from '@/services/courseService';
 
-const BLUE_LIGHT = '#E3F2FD';
+const BLUE_LIGHT = '#e6fde3';
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 const getStatutColor = (statut: string) => {
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: BLUE_LIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,

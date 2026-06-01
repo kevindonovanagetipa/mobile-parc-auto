@@ -4,7 +4,7 @@ import { Card, Text, Avatar, Chip, FAB } from 'react-native-paper';
 import { chauffeurService, Chauffeur } from '@/services/chauffeurService';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const BLUE_LIGHT = '#E3F2FD';
+const BLUE_LIGHT = '#e6fde3';
 // --- Helpers ---
 const DISPO_CONFIG: Record<string, { couleur: string }> = {
   Disponible:   { couleur: '#4caf50' },
@@ -122,7 +122,7 @@ export default function Chauffeurs() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6200ee" />
+        <ActivityIndicator size="large" />
       </View>
     );
   }
@@ -175,7 +175,13 @@ const styles = StyleSheet.create({
   nom:        { fontWeight: 'bold' },
   tel:        { color: '#666', marginTop: 2 },
   chips:      { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  centered:   { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  centered:{
+    flex: 1,
+    backgroundColor:BLUE_LIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
   errorText:  { color: '#f44336', textAlign: 'center', paddingHorizontal: 24 },
   endText:    { textAlign: 'center', color: '#aaa', marginVertical: 12 },
 });

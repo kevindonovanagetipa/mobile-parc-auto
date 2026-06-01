@@ -19,14 +19,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { API_BASE_URL } from '@/constants/api';
+import { COLORS } from '@/constants/colors';
 import {
   reservationService,
   UpdateReservationPayload,
 } from '@/services/reservationService';
-
-const BLUE = '#1565C0';
-const BLUE_LIGHT = '#E3F2FD';
-const BLUE_DARK = '#0D47A1';
 
 interface Vehicule {
   id: number;
@@ -444,7 +441,7 @@ export default function ModifierReservation() {
   if (loadingPage) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={BLUE} />
+        <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={styles.loadingText}>Chargement de la réservation...</Text>
       </View>
     );
@@ -479,8 +476,8 @@ export default function ModifierReservation() {
               onChangeText={(value) => handleChange('objet_deplacement', value)}
               style={styles.input}
               placeholder="Ex : Visite Alasora"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
             <TextInput
@@ -490,9 +487,9 @@ export default function ModifierReservation() {
               onChangeText={(value) => handleChange('date_depart', value)}
               style={styles.input}
               placeholder="Ex : 2026-05-20"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
-              left={<TextInput.Icon icon="calendar" color={BLUE} />}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={<TextInput.Icon icon="calendar" color={COLORS.primary} />}
             />
 
             <TextInput
@@ -502,9 +499,14 @@ export default function ModifierReservation() {
               onChangeText={(value) => handleChange('heure_depart', value)}
               style={styles.input}
               placeholder="Ex : 08:00"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
-              left={<TextInput.Icon icon="clock-outline" color={BLUE} />}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={
+                <TextInput.Icon
+                  icon="clock-outline"
+                  color={COLORS.primary}
+                />
+              }
             />
 
             <TextInput
@@ -514,8 +516,8 @@ export default function ModifierReservation() {
               onChangeText={(value) => handleChange('lieu_depart', value)}
               style={styles.input}
               placeholder="Ex : AGETIPA"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
             <TextInput
@@ -528,8 +530,8 @@ export default function ModifierReservation() {
               style={styles.input}
               placeholder="Ex : Alasora"
               multiline
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
             <TextInput
@@ -539,9 +541,9 @@ export default function ModifierReservation() {
               onChangeText={(value) => handleChange('date_retour', value)}
               style={styles.input}
               placeholder="Ex : 2026-05-20"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
-              left={<TextInput.Icon icon="calendar" color={BLUE} />}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={<TextInput.Icon icon="calendar" color={COLORS.primary} />}
             />
 
             <TextInput
@@ -551,9 +553,14 @@ export default function ModifierReservation() {
               onChangeText={(value) => handleChange('heure_retour', value)}
               style={styles.input}
               placeholder="Ex : 12:00"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
-              left={<TextInput.Icon icon="clock-outline" color={BLUE} />}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={
+                <TextInput.Icon
+                  icon="clock-outline"
+                  color={COLORS.primary}
+                />
+              }
             />
 
             <TextInput
@@ -564,8 +571,8 @@ export default function ModifierReservation() {
               style={styles.input}
               placeholder="Ex : 2"
               keyboardType="numeric"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
             <TextInput
@@ -576,8 +583,8 @@ export default function ModifierReservation() {
               style={styles.input}
               placeholder="Ex : Mahefa, Qeurcy"
               multiline
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
             <View style={styles.selectContainer}>
@@ -586,13 +593,14 @@ export default function ModifierReservation() {
               <Menu
                 visible={vehiculeMenuVisible}
                 onDismiss={() => setVehiculeMenuVisible(false)}
+                contentStyle={styles.menuContent}
                 anchor={
                   <Button
                     mode="outlined"
                     onPress={() => setVehiculeMenuVisible(true)}
                     disabled={loadingOptions}
                     icon="car"
-                    textColor={BLUE_DARK}
+                    textColor={COLORS.primaryDark}
                     style={styles.selectButton}
                     contentStyle={styles.selectButtonContent}
                   >
@@ -606,13 +614,18 @@ export default function ModifierReservation() {
               >
                 {loadingOptions ? (
                   <View style={styles.loadingMenu}>
-                    <ActivityIndicator size="small" color={BLUE} />
+                    <ActivityIndicator size="small" color={COLORS.primary} />
                   </View>
                 ) : vehicules.length > 0 ? (
                   vehicules.map((vehicule) => (
                     <Menu.Item
                       key={vehicule.id}
                       title={getNomVoiture(vehicule)}
+                      titleStyle={
+                        String(vehicule.id) === formData.vehicule_id
+                          ? styles.menuItemSelected
+                          : undefined
+                      }
                       onPress={() => {
                         handleChange('vehicule_id', String(vehicule.id));
                         setVehiculeMenuVisible(false);
@@ -634,13 +647,14 @@ export default function ModifierReservation() {
               <Menu
                 visible={chauffeurMenuVisible}
                 onDismiss={() => setChauffeurMenuVisible(false)}
+                contentStyle={styles.menuContent}
                 anchor={
                   <Button
                     mode="outlined"
                     onPress={() => setChauffeurMenuVisible(true)}
                     disabled={loadingOptions}
                     icon="account-tie"
-                    textColor={BLUE_DARK}
+                    textColor={COLORS.primaryDark}
                     style={styles.selectButton}
                     contentStyle={styles.selectButtonContent}
                   >
@@ -654,13 +668,18 @@ export default function ModifierReservation() {
               >
                 {loadingOptions ? (
                   <View style={styles.loadingMenu}>
-                    <ActivityIndicator size="small" color={BLUE} />
+                    <ActivityIndicator size="small" color={COLORS.primary} />
                   </View>
                 ) : chauffeurs.length > 0 ? (
                   chauffeurs.map((chauffeur) => (
                     <Menu.Item
                       key={chauffeur.id}
                       title={getNomChauffeur(chauffeur)}
+                      titleStyle={
+                        String(chauffeur.id) === formData.chauffeur_id
+                          ? styles.menuItemSelected
+                          : undefined
+                      }
                       onPress={() => {
                         handleChange('chauffeur_id', String(chauffeur.id));
                         setChauffeurMenuVisible(false);
@@ -682,16 +701,19 @@ export default function ModifierReservation() {
               <Menu
                 visible={statutMenuVisible}
                 onDismiss={() => setStatutMenuVisible(false)}
+                contentStyle={styles.menuContent}
                 anchor={
                   <Button
                     mode="outlined"
                     onPress={() => setStatutMenuVisible(true)}
                     icon="check-circle-outline"
-                    textColor={BLUE_DARK}
+                    textColor={COLORS.primaryDark}
                     style={styles.selectButton}
                     contentStyle={styles.selectButtonContent}
                   >
-                    {selectedStatut ? selectedStatut.label : 'Sélectionner un statut'}
+                    {selectedStatut
+                      ? selectedStatut.label
+                      : 'Sélectionner un statut'}
                   </Button>
                 }
               >
@@ -699,6 +721,11 @@ export default function ModifierReservation() {
                   <Menu.Item
                     key={statut.value}
                     title={statut.label}
+                    titleStyle={
+                      statut.value === formData.statut
+                        ? styles.menuItemSelected
+                        : undefined
+                    }
                     onPress={() => {
                       handleChange('statut', statut.value);
                       setStatutMenuVisible(false);
@@ -713,7 +740,7 @@ export default function ModifierReservation() {
                 mode="outlined"
                 onPress={() => router.back()}
                 style={styles.cancelButton}
-                textColor={BLUE_DARK}
+                textColor={COLORS.primaryDark}
                 disabled={loading}
               >
                 Annuler
@@ -723,7 +750,8 @@ export default function ModifierReservation() {
                 mode="contained"
                 onPress={handleUpdate}
                 style={styles.submitButton}
-                buttonColor={BLUE}
+                buttonColor={COLORS.primary}
+                textColor={COLORS.surface}
                 loading={loading}
                 disabled={loading || loadingOptions}
               >
@@ -743,7 +771,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
   },
   content: {
     padding: 16,
@@ -754,38 +782,45 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: 'bold',
-    color: BLUE_DARK,
+    color: COLORS.primaryDark,
   },
   subtitle: {
     marginTop: 4,
-    color: BLUE,
+    color: COLORS.primary,
     opacity: 0.8,
   },
   card: {
     borderRadius: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
     elevation: 4,
   },
   input: {
     marginBottom: 14,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
   },
   selectContainer: {
     marginBottom: 14,
   },
   selectLabel: {
     marginBottom: 6,
-    color: BLUE_DARK,
+    color: COLORS.primaryDark,
     fontWeight: '600',
   },
   selectButton: {
     borderRadius: 8,
-    borderColor: BLUE,
-    backgroundColor: '#ffffff',
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.surface,
   },
   selectButtonContent: {
     justifyContent: 'flex-start',
     minHeight: 52,
+  },
+  menuContent: {
+    backgroundColor: COLORS.surface,
+  },
+  menuItemSelected: {
+    color: COLORS.primaryDark,
+    fontWeight: 'bold',
   },
   loadingMenu: {
     padding: 16,
@@ -800,6 +835,7 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     borderRadius: 8,
+    borderColor: COLORS.primary,
   },
   submitButton: {
     flex: 1,
@@ -807,12 +843,12 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
   },
   loadingText: {
-    color: BLUE_DARK,
+    color: COLORS.primaryDark,
   },
 });

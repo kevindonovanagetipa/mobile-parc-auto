@@ -3,12 +3,10 @@ import { getValidToken } from '@/utils/authToken';
 import { View, StyleSheet, Alert, Image } from 'react-native';
 import { TextInput, Button, Card, Text } from 'react-native-paper';
 import { router } from 'expo-router';
+
 import { ROUTES } from '@/constants/routes';
 import { authService } from '@/services/authService';
-
-const BLUE = '#1565C0';
-const BLUE_LIGHT = '#E3F2FD';
-const BLUE_DARK = '#0D47A1';
+import { COLORS } from '@/constants/colors';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,22 +14,22 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-  let mounted = true;
+    let mounted = true;
 
-  const checkExistingSession = async () => {
-    const token = await getValidToken();
+    const checkExistingSession = async () => {
+      const token = await getValidToken();
 
-    if (mounted && token) {
-      router.replace(ROUTES.TABS);
-    }
-  };
+      if (mounted && token) {
+        router.replace(ROUTES.TABS);
+      }
+    };
 
-  checkExistingSession();
+    checkExistingSession();
 
-  return () => {
-    mounted = false;
-  };
-}, []);
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -40,11 +38,15 @@ export default function Login() {
     }
 
     setLoading(true);
+
     try {
       await authService.login(email, password);
       router.replace(ROUTES.TABS);
     } catch (error: any) {
-      Alert.alert('Échec de connexion', error.message || 'Identifiants invalides');
+      Alert.alert(
+        'Échec de connexion',
+        error.message || 'Identifiants invalides'
+      );
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,6 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-
       {/* Logo + Nom de l'appli */}
       <View style={styles.header}>
         <Image
@@ -60,14 +61,22 @@ export default function Login() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text variant="headlineMedium" style={styles.appName}>Parc Auto</Text>
-        <Text variant="bodySmall" style={styles.appSubtitle}>Gestion de flotte automobile</Text>
+
+        <Text variant="headlineMedium" style={styles.appName}>
+          Parc Auto
+        </Text>
+
+        <Text variant="bodySmall" style={styles.appSubtitle}>
+          Gestion de flotte automobile
+        </Text>
       </View>
 
       {/* Carte de connexion */}
       <Card style={styles.card}>
         <Card.Content>
-          <Text variant="titleLarge" style={styles.title}>Connexion</Text>
+          <Text variant="titleLarge" style={styles.title}>
+            Connexion
+          </Text>
 
           <TextInput
             label="Email"
@@ -77,9 +86,14 @@ export default function Login() {
             autoCapitalize="none"
             value={email}
             onChangeText={setEmail}
-            outlineColor={BLUE}
-            activeOutlineColor={BLUE_DARK}
-            left={<TextInput.Icon icon="email-outline" color={BLUE} />}
+            outlineColor={COLORS.primary}
+            activeOutlineColor={COLORS.primaryDark}
+            left={
+              <TextInput.Icon
+                icon="email-outline"
+                color={COLORS.primary}
+              />
+            }
           />
 
           <TextInput
@@ -89,9 +103,14 @@ export default function Login() {
             style={styles.input}
             value={password}
             onChangeText={setPassword}
-            outlineColor={BLUE}
-            activeOutlineColor={BLUE_DARK}
-            left={<TextInput.Icon icon="lock-outline" color={BLUE} />}
+            outlineColor={COLORS.primary}
+            activeOutlineColor={COLORS.primaryDark}
+            left={
+              <TextInput.Icon
+                icon="lock-outline"
+                color={COLORS.primary}
+              />
+            }
           />
 
           <Button
@@ -99,7 +118,8 @@ export default function Login() {
             onPress={handleLogin}
             style={styles.button}
             contentStyle={styles.buttonContent}
-            buttonColor={BLUE}
+            buttonColor={COLORS.primary}
+            textColor={COLORS.surface}
             loading={loading}
             disabled={loading}
           >
@@ -107,7 +127,6 @@ export default function Login() {
           </Button>
         </Card.Content>
       </Card>
-
     </View>
   );
 }
@@ -118,7 +137,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
   },
   header: {
     alignItems: 'center',
@@ -132,11 +151,11 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontWeight: 'bold',
-    color: BLUE_DARK,
+    color: COLORS.primaryDark,
     letterSpacing: 1,
   },
   appSubtitle: {
-    color: BLUE,
+    color: COLORS.primary,
     marginTop: 4,
     opacity: 0.8,
   },
@@ -145,23 +164,22 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
     elevation: 4,
   },
   title: {
     textAlign: 'center',
     marginBottom: 24,
     fontWeight: 'bold',
-    color: BLUE_DARK,
+    color: COLORS.primaryDark,
   },
   input: {
     marginBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
   },
   button: {
     marginTop: 8,
     borderRadius: 8,
-    color: '#fff',
   },
   buttonContent: {
     paddingVertical: 6,

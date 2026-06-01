@@ -1,50 +1,41 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import {
-  ActivityIndicator,
+  TextInput,
   Button,
   Card,
-  Menu,
   Text,
-  TextInput,
+  Menu,
 } from 'react-native-paper';
-import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
 
-import { ROUTES } from '@/constants/routes';
 import { API_BASE_URL } from '@/constants/api';
+import { ROUTES } from '@/constants/routes';
+import { COLORS } from '@/constants/colors';
 import { reservationService } from '@/services/reservationService';
 
-const BLUE = '#1565C0';
-const BLUE_LIGHT = '#E3F2FD';
-const BLUE_DARK = '#0D47A1';
-
-const today = new Date().toISOString().split('T')[0];
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface Vehicule {
+type Vehicule = {
   id: number;
   marque?: string;
   modele?: string;
   numero_vehicule?: string;
   numero_immatriculation?: string;
-}
+};
 
-interface Chauffeur {
+type Chauffeur = {
   id: number;
   nom?: string;
   prenom?: string;
-}
-
-type ReservationStatut = 'en_attente' | 'validee' | 'terminee' | 'annulee';
+};
 
 type ReservationFormData = {
   objet_deplacement: string;
@@ -59,10 +50,10 @@ type ReservationFormData = {
   vehicule_id: string;
   utilisateur_id: string;
   chauffeur_id: string;
-  statut: ReservationStatut;
+  statut: 'en_attente' | 'validee' | 'terminee' | 'annulee';
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+const today = new Date().toISOString().split('T')[0];
 
 const extractList = (data: any): any[] => {
   if (Array.isArray(data)) return data;
@@ -71,14 +62,10 @@ const extractList = (data: any): any[] => {
   if (Array.isArray(data?.data?.items)) return data.data.items;
   if (Array.isArray(data?.rows)) return data.rows;
   if (Array.isArray(data?.data?.rows)) return data.data.rows;
+
   return [];
 };
 
-/**
- * Récupère toutes les pages d'une API paginée.
- * Détecte automatiquement totalPages, total, ou se base sur
- * le nombre d'items retournés pour savoir s'il reste des pages.
- */
 const fetchAllPages = async (
   url: string,
   headers: Record<string, string>
@@ -92,7 +79,10 @@ const fetchAllPages = async (
     const separator = url.includes('?') ? '&' : '?';
     const requestUrl = `${url}${separator}page=${page}&limit=${limit}`;
 
-    const response = await fetch(requestUrl, { method: 'GET', headers });
+    const response = await fetch(requestUrl, {
+      method: 'GET',
+      headers,
+    });
 
     if (response.status === 401 || response.status === 403) {
       throw new Error('Session expirée. Veuillez vous reconnecter.');
@@ -107,7 +97,6 @@ const fetchAllPages = async (
 
     allItems = [...allItems, ...items];
 
-    // Détection du nombre total de pages (plusieurs structures possibles)
     const totalPages =
       json?.totalPages ??
       json?.data?.totalPages ??
@@ -133,7 +122,6 @@ const fetchAllPages = async (
     } else if (total !== null) {
       hasMore = allItems.length < Number(total);
     } else {
-      // Pas d'info de pagination : on continue tant qu'on reçoit une page pleine
       hasMore = items.length === limit;
     }
 
@@ -144,7 +132,11 @@ const fetchAllPages = async (
 };
 
 const getNomVoiture = (vehicule: Vehicule): string => {
-  const nom = [vehicule.marque, vehicule.modele].filter(Boolean).join(' ').trim();
+  const nom = [vehicule.marque, vehicule.modele]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
   return (
     nom ||
     vehicule.numero_vehicule ||
@@ -154,23 +146,25 @@ const getNomVoiture = (vehicule: Vehicule): string => {
 };
 
 const getNomChauffeur = (chauffeur: Chauffeur): string => {
-  const nom = [chauffeur.prenom, chauffeur.nom].filter(Boolean).join(' ').trim();
+  const nom = [chauffeur.prenom, chauffeur.nom]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
   return nom || `Chauffeur ${chauffeur.id}`;
 };
 
-/**
- * S'assure que l'heure est au format HH:mm:ss attendu par SQL Server.
- * "08:00"  → "08:00:00"
- * "08:00:00" → "08:00:00" (inchangé)
- */
 const normalizeHeure = (heure: string): string => {
   if (!heure) return heure;
+
   const parts = heure.split(':');
-  if (parts.length === 2) return `${heure}:00`;
+
+  if (parts.length === 2) {
+    return `${heure}:00`;
+  }
+
   return heure;
 };
-
-// ─── Composant principal ──────────────────────────────────────────────────────
 
 export default function AjouterReservation() {
   const [loading, setLoading] = useState(false);
@@ -198,13 +192,15 @@ export default function AjouterReservation() {
     statut: 'en_attente',
   });
 
-  // Charger l'utilisateur connecté
   useEffect(() => {
     const loadUser = async () => {
       try {
         const raw = await AsyncStorage.getItem('user');
+
         if (!raw) return;
+
         const user = JSON.parse(raw);
+
         setFormData((prev) => ({
           ...prev,
           utilisateur_id: user?.id ? String(user.id) : '',
@@ -213,10 +209,10 @@ export default function AjouterReservation() {
         console.log('Erreur lecture utilisateur :', error);
       }
     };
+
     loadUser();
   }, []);
 
-  // Charger TOUTES les pages de véhicules et chauffeurs
   useEffect(() => {
     const fetchOptions = async () => {
       setLoadingOptions(true);
@@ -225,7 +221,10 @@ export default function AjouterReservation() {
         const token = await AsyncStorage.getItem('token');
 
         if (!token) {
-          Alert.alert('Erreur', "Token d'accès introuvable. Veuillez vous reconnecter.");
+          Alert.alert(
+            'Erreur',
+            "Token d'accès introuvable. Veuillez vous reconnecter."
+          );
           return;
         }
 
@@ -234,7 +233,6 @@ export default function AjouterReservation() {
           'Content-Type': 'application/json',
         };
 
-        // fetchAllPages parcourt toutes les pages automatiquement
         const [vehiculesData, chauffeursData] = await Promise.all([
           fetchAllPages(`${API_BASE_URL}/api/vehicules`, headers),
           fetchAllPages(`${API_BASE_URL}/api/chauffeurs`, headers),
@@ -244,9 +242,11 @@ export default function AjouterReservation() {
         setChauffeurs(chauffeursData);
       } catch (error: any) {
         console.log('Erreur chargement véhicules/chauffeurs :', error);
+
         Alert.alert(
           'Erreur',
-          error.message || 'Impossible de charger les véhicules et les chauffeurs.'
+          error.message ||
+            'Impossible de charger les véhicules et les chauffeurs.'
         );
       } finally {
         setLoadingOptions(false);
@@ -257,7 +257,10 @@ export default function AjouterReservation() {
   }, []);
 
   const handleChange = (field: keyof ReservationFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const selectedVehicule = vehicules.find(
@@ -274,7 +277,10 @@ export default function AjouterReservation() {
       ['la date de départ', !formData.date_depart.trim()],
       ["l'heure de départ", !formData.heure_depart.trim()],
       ['le lieu de départ', !formData.lieu_depart.trim()],
-      ['la destination ou itinéraire', !formData.destination_itineraire.trim()],
+      [
+        'la destination ou itinéraire',
+        !formData.destination_itineraire.trim(),
+      ],
       ['la date de retour', !formData.date_retour.trim()],
       ["l'heure de retour", !formData.heure_retour.trim()],
       ['les passagers', !formData.passagers.trim()],
@@ -290,7 +296,10 @@ export default function AjouterReservation() {
     }
 
     if (!formData.nombre_passager || Number(formData.nombre_passager) <= 0) {
-      Alert.alert('Erreur', 'Veuillez saisir un nombre de passagers valide.');
+      Alert.alert(
+        'Erreur',
+        'Veuillez saisir un nombre de passagers valide.'
+      );
       return false;
     }
 
@@ -306,7 +315,6 @@ export default function AjouterReservation() {
       await reservationService.createReservation({
         objet_deplacement: formData.objet_deplacement,
         date_depart: formData.date_depart,
-        // normalizeHeure garantit le format HH:mm:ss attendu par SQL Server
         heure_depart: normalizeHeure(formData.heure_depart),
         lieu_depart: formData.lieu_depart,
         destination_itineraire: formData.destination_itineraire,
@@ -326,7 +334,11 @@ export default function AjouterReservation() {
       router.replace(ROUTES.RESERVATIONS);
     } catch (error: any) {
       console.log('Erreur ajout réservation :', error);
-      Alert.alert('Erreur', error.message || "Impossible d'ajouter la réservation");
+
+      Alert.alert(
+        'Erreur',
+        error.message || "Impossible d'ajouter la réservation"
+      );
     } finally {
       setLoading(false);
     }
@@ -346,6 +358,7 @@ export default function AjouterReservation() {
           <Text variant="headlineSmall" style={styles.title}>
             Nouvelle réservation
           </Text>
+
           <Text variant="bodyMedium" style={styles.subtitle}>
             Remplissez les informations de la demande de véhicule
           </Text>
@@ -353,7 +366,6 @@ export default function AjouterReservation() {
 
         <Card style={styles.card}>
           <Card.Content>
-
             <TextInput
               label="Objet du déplacement *"
               mode="outlined"
@@ -361,8 +373,8 @@ export default function AjouterReservation() {
               onChangeText={(v) => handleChange('objet_deplacement', v)}
               style={styles.input}
               placeholder="Ex : Visite Alasora"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
             <TextInput
@@ -372,9 +384,14 @@ export default function AjouterReservation() {
               onChangeText={(v) => handleChange('date_depart', v)}
               style={styles.input}
               placeholder="Ex : 2026-05-20"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
-              left={<TextInput.Icon icon="calendar" color={BLUE} />}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={
+                <TextInput.Icon
+                  icon="calendar"
+                  color={COLORS.primary}
+                />
+              }
             />
 
             <TextInput
@@ -384,9 +401,14 @@ export default function AjouterReservation() {
               onChangeText={(v) => handleChange('heure_depart', v)}
               style={styles.input}
               placeholder="Ex : 08:00"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
-              left={<TextInput.Icon icon="clock-outline" color={BLUE} />}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={
+                <TextInput.Icon
+                  icon="clock-outline"
+                  color={COLORS.primary}
+                />
+              }
             />
 
             <TextInput
@@ -396,20 +418,22 @@ export default function AjouterReservation() {
               onChangeText={(v) => handleChange('lieu_depart', v)}
               style={styles.input}
               placeholder="Ex : AGETIPA"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
             <TextInput
               label="Destination / Itinéraire *"
               mode="outlined"
               value={formData.destination_itineraire}
-              onChangeText={(v) => handleChange('destination_itineraire', v)}
+              onChangeText={(v) =>
+                handleChange('destination_itineraire', v)
+              }
               style={styles.input}
               placeholder="Ex : Alasora"
               multiline
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
             <TextInput
@@ -419,9 +443,14 @@ export default function AjouterReservation() {
               onChangeText={(v) => handleChange('date_retour', v)}
               style={styles.input}
               placeholder="Ex : 2026-05-20"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
-              left={<TextInput.Icon icon="calendar" color={BLUE} />}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={
+                <TextInput.Icon
+                  icon="calendar"
+                  color={COLORS.primary}
+                />
+              }
             />
 
             <TextInput
@@ -431,9 +460,14 @@ export default function AjouterReservation() {
               onChangeText={(v) => handleChange('heure_retour', v)}
               style={styles.input}
               placeholder="Ex : 12:00"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
-              left={<TextInput.Icon icon="clock-outline" color={BLUE} />}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={
+                <TextInput.Icon
+                  icon="clock-outline"
+                  color={COLORS.primary}
+                />
+              }
             />
 
             <TextInput
@@ -444,8 +478,8 @@ export default function AjouterReservation() {
               style={styles.input}
               placeholder="Ex : 2"
               keyboardType="numeric"
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
             <TextInput
@@ -456,13 +490,13 @@ export default function AjouterReservation() {
               style={styles.input}
               placeholder="Ex : Mahefa, Qeurcy"
               multiline
-              outlineColor={BLUE}
-              activeOutlineColor={BLUE_DARK}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
             />
 
-            {/* ── Sélecteur Voiture ── */}
             <View style={styles.selectContainer}>
               <Text style={styles.selectLabel}>Voiture *</Text>
+
               <Menu
                 visible={vehiculeMenuVisible}
                 onDismiss={() => setVehiculeMenuVisible(false)}
@@ -473,7 +507,7 @@ export default function AjouterReservation() {
                     onPress={() => setVehiculeMenuVisible(true)}
                     disabled={loadingOptions}
                     icon="car"
-                    textColor={BLUE_DARK}
+                    textColor={COLORS.primaryDark}
                     style={styles.selectButton}
                     contentStyle={styles.selectButtonContent}
                   >
@@ -487,7 +521,10 @@ export default function AjouterReservation() {
               >
                 {loadingOptions ? (
                   <View style={styles.loadingMenu}>
-                    <ActivityIndicator size="small" color={BLUE} />
+                    <ActivityIndicator
+                      size="small"
+                      color={COLORS.primary}
+                    />
                     <Text style={styles.loadingText}>Chargement...</Text>
                   </View>
                 ) : vehicules.length > 0 ? (
@@ -523,9 +560,9 @@ export default function AjouterReservation() {
               </Menu>
             </View>
 
-            {/* ── Sélecteur Chauffeur ── */}
             <View style={styles.selectContainer}>
               <Text style={styles.selectLabel}>Chauffeur *</Text>
+
               <Menu
                 visible={chauffeurMenuVisible}
                 onDismiss={() => setChauffeurMenuVisible(false)}
@@ -536,7 +573,7 @@ export default function AjouterReservation() {
                     onPress={() => setChauffeurMenuVisible(true)}
                     disabled={loadingOptions}
                     icon="account-tie"
-                    textColor={BLUE_DARK}
+                    textColor={COLORS.primaryDark}
                     style={styles.selectButton}
                     contentStyle={styles.selectButtonContent}
                   >
@@ -550,7 +587,10 @@ export default function AjouterReservation() {
               >
                 {loadingOptions ? (
                   <View style={styles.loadingMenu}>
-                    <ActivityIndicator size="small" color={BLUE} />
+                    <ActivityIndicator
+                      size="small"
+                      color={COLORS.primary}
+                    />
                     <Text style={styles.loadingText}>Chargement...</Text>
                   </View>
                 ) : chauffeurs.length > 0 ? (
@@ -591,7 +631,7 @@ export default function AjouterReservation() {
                 mode="outlined"
                 onPress={() => router.back()}
                 style={styles.cancelButton}
-                textColor={BLUE_DARK}
+                textColor={COLORS.primaryDark}
                 disabled={loading}
               >
                 Annuler
@@ -601,14 +641,14 @@ export default function AjouterReservation() {
                 mode="contained"
                 onPress={handleSubmit}
                 style={styles.submitButton}
-                buttonColor={BLUE}
+                buttonColor={COLORS.primary}
+                textColor={COLORS.surface}
                 loading={loading}
                 disabled={loading || loadingOptions}
               >
                 Enregistrer
               </Button>
             </View>
-
           </Card.Content>
         </Card>
       </ScrollView>
@@ -617,34 +657,63 @@ export default function AjouterReservation() {
 }
 
 const styles = StyleSheet.create({
-  keyboardView: { flex: 1 },
-  container: { flex: 1, backgroundColor: BLUE_LIGHT },
-  content: { padding: 16, paddingBottom: 32 },
-  header: { marginBottom: 16 },
-  title: { fontWeight: 'bold', color: BLUE_DARK },
-  subtitle: { marginTop: 4, color: BLUE, opacity: 0.8 },
-  card: { borderRadius: 16, backgroundColor: '#ffffff', elevation: 4 },
-  input: { marginBottom: 14, backgroundColor: '#ffffff' },
-  selectContainer: { marginBottom: 14 },
-  selectLabel: { marginBottom: 6, color: BLUE_DARK, fontWeight: '600' },
+  keyboardView: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  header: {
+    marginBottom: 16,
+  },
+  title: {
+    fontWeight: 'bold',
+    color: COLORS.primaryDark,
+  },
+  subtitle: {
+    marginTop: 4,
+    color: COLORS.primary,
+    opacity: 0.8,
+  },
+  card: {
+    borderRadius: 16,
+    backgroundColor: COLORS.surface,
+    elevation: 4,
+  },
+  input: {
+    marginBottom: 14,
+    backgroundColor: COLORS.surface,
+  },
+  selectContainer: {
+    marginBottom: 14,
+  },
+  selectLabel: {
+    marginBottom: 6,
+    color: COLORS.primaryDark,
+    fontWeight: '600',
+  },
   selectButton: {
     borderRadius: 8,
-    borderColor: BLUE,
-    backgroundColor: '#ffffff',
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.surface,
   },
   selectButtonContent: {
     justifyContent: 'flex-start',
     minHeight: 52,
   },
-  // Hauteur fixe + scroll interne pour afficher toute la liste paginée
   menuContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
   },
   menuScroll: {
     maxHeight: 250,
   },
   menuItemSelected: {
-    color: BLUE_DARK,
+    color: COLORS.primaryDark,
     fontWeight: 'bold',
   },
   loadingMenu: {
@@ -654,7 +723,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loadingText: {
-    color: BLUE,
+    color: COLORS.primary,
     fontSize: 13,
   },
   actions: {
@@ -663,6 +732,13 @@ const styles = StyleSheet.create({
     gap: 12,
     marginTop: 12,
   },
-  cancelButton: { flex: 1, borderRadius: 8 },
-  submitButton: { flex: 1, borderRadius: 8 },
+  cancelButton: {
+    flex: 1,
+    borderRadius: 8,
+    borderColor: COLORS.primary,
+  },
+  submitButton: {
+    flex: 1,
+    borderRadius: 8,
+  },
 });
