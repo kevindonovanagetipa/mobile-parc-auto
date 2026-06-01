@@ -54,6 +54,13 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
+      {/* Logo AGETIPA en haut à droite */}
+      <Image
+        source={require('@/assets/images/logo_agetipa.jpg')}
+        style={styles.logoAgetipa}
+        resizeMode="contain"
+      />
+
       {/* Logo + Nom de l'appli */}
       <View style={styles.header}>
         <Image
@@ -138,6 +145,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     backgroundColor: COLORS.background,
+    position: 'relative',
+  },
+  logoAgetipa: {
+    position: 'absolute',
+    borderRadius: 20,
+    top: 45,
+    right: 20,
+    width: 45,
+    height: 45,
   },
   header: {
     alignItems: 'center',

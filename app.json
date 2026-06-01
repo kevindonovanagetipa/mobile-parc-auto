@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mobile-parc-auto",
+    "name": "Parc Auto Agetipa",
     "slug": "mobile-parc-auto",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#e6fde3",
         "foregroundImage": "./assets/images/logo_parc_auto.png"
       },
       "edgeToEdgeEnabled": true,

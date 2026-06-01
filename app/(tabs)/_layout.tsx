@@ -7,6 +7,9 @@ import { COLORS } from '@/constants/colors';
 // @ts-ignore: Asset import type declarations
 const logoParcAuto = require('../../assets/images/logo_parc_auto.png');
 
+// @ts-ignore: Asset import type declarations
+const logoAgetipa = require('../../assets/images/logo_agetipa.jpg');
+
 function HeaderTitle() {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -37,12 +40,34 @@ function HeaderTitle() {
   );
 }
 
+function HeaderRightLogo() {
+  return (
+    <View
+      style={{
+        marginRight: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Image
+        source={logoAgetipa}
+        style={{
+          width: 78,
+          height: 36,
+        }}
+        resizeMode="contain"
+      />
+    </View>
+  );
+}
+
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
         headerTitle: () => <HeaderTitle />,
+        headerRight: () => <HeaderRightLogo />,
         headerTitleAlign: 'left',
         headerStyle: {
           backgroundColor: COLORS.surface,

@@ -1,19 +1,24 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import {
   ActivityIndicator,
   Button,
   Card,
   Chip,
-  FAB,
+  Divider,
+  Menu,
   Text,
+  TextInput,
 } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { Course, courseService } from '@/services/courseService';
 
 const BLUE_LIGHT = '#e6fde3';
+
 type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+type SortOption = 'date_desc' | 'date_asc' | 'nom_asc' | 'nom_desc';
 
 const getStatutColor = (statut: string) => {
   switch (statut) {
@@ -82,11 +87,38 @@ const formatHeure = (heure?: string) => {
   return heure.substring(0, 5);
 };
 
+const getTimeFromDate = (date?: string) => {
+  if (!date) return 0;
+
+  const time = new Date(date).getTime();
+
+  return Number.isNaN(time) ? 0 : time;
+};
+
+const getSortLabel = (sortOption: SortOption) => {
+  switch (sortOption) {
+    case 'date_desc':
+      return 'Date récente';
+    case 'date_asc':
+      return 'Date ancienne';
+    case 'nom_asc':
+      return 'Nom A-Z';
+    case 'nom_desc':
+      return 'Nom Z-A';
+    default:
+      return 'Trier';
+  }
+};
+
 export default function CourseScreen() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOption, setSortOption] = useState<SortOption>('date_desc');
+  const [sortMenuVisible, setSortMenuVisible] = useState(false);
 
   const loadCourses = async () => {
     try {
@@ -116,6 +148,50 @@ export default function CourseScreen() {
   useEffect(() => {
     loadCourses();
   }, []);
+
+  const filteredAndSortedCourses = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const filteredCourses = courses.filter((course) => {
+      const searchableText = [
+        course.objet_course,
+        course.destination_itineraire,
+        course.responsable,
+        course.coursier,
+        course.moyen_locomotion,
+        getStatutLabel(course.statut),
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return searchableText.includes(query);
+    });
+
+    return [...filteredCourses].sort((a, b) => {
+      if (sortOption === 'date_desc') {
+        return getTimeFromDate(b.date_course) - getTimeFromDate(a.date_course);
+      }
+
+      if (sortOption === 'date_asc') {
+        return getTimeFromDate(a.date_course) - getTimeFromDate(b.date_course);
+      }
+
+      if (sortOption === 'nom_asc') {
+        return a.objet_course.localeCompare(b.objet_course);
+      }
+
+      if (sortOption === 'nom_desc') {
+        return b.objet_course.localeCompare(a.objet_course);
+      }
+
+      return 0;
+    });
+  }, [courses, searchQuery, sortOption]);
+
+  const handleSelectSort = (option: SortOption) => {
+    setSortOption(option);
+    setSortMenuVisible(false);
+  };
 
   if (loading) {
     return (
@@ -160,7 +236,75 @@ export default function CourseScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {courses.length === 0 ? (
+        <View style={styles.filterContainer}>
+          <TextInput
+            mode="outlined"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Rechercher une course..."
+            left={<TextInput.Icon icon="magnify" />}
+            right={
+              searchQuery ? (
+                <TextInput.Icon
+                  icon="close"
+                  onPress={() => setSearchQuery('')}
+                />
+              ) : undefined
+            }
+            style={styles.searchInput}
+            outlineStyle={styles.searchInputOutline}
+          />
+
+          <Menu
+            visible={sortMenuVisible}
+            onDismiss={() => setSortMenuVisible(false)}
+            anchor={
+              <Button
+                mode="outlined"
+                icon="sort"
+                onPress={() => setSortMenuVisible(true)}
+                style={styles.sortButton}
+                labelStyle={styles.sortButtonLabel}
+              >
+                {getSortLabel(sortOption)}
+              </Button>
+            }
+          >
+            <Menu.Item
+              onPress={() => handleSelectSort('date_desc')}
+              title="Date récente"
+              leadingIcon="sort-calendar-descending"
+            />
+
+            <Menu.Item
+              onPress={() => handleSelectSort('date_asc')}
+              title="Date ancienne"
+              leadingIcon="sort-calendar-ascending"
+            />
+
+            <Divider />
+
+            <Menu.Item
+              onPress={() => handleSelectSort('nom_asc')}
+              title="Nom A-Z"
+              leadingIcon="sort-alphabetical-ascending"
+            />
+
+            <Menu.Item
+              onPress={() => handleSelectSort('nom_desc')}
+              title="Nom Z-A"
+              leadingIcon="sort-alphabetical-descending"
+            />
+          </Menu>
+        </View>
+
+        <Text style={styles.resultText}>
+          {filteredAndSortedCourses.length} course
+          {filteredAndSortedCourses.length > 1 ? 's' : ''} trouvée
+          {filteredAndSortedCourses.length > 1 ? 's' : ''}
+        </Text>
+
+        {filteredAndSortedCourses.length === 0 ? (
           <View style={styles.emptyContainer}>
             <MaterialCommunityIcons
               name="map-marker-off-outline"
@@ -168,10 +312,14 @@ export default function CourseScreen() {
               color="#999"
             />
 
-            <Text style={styles.emptyText}>Aucune course disponible</Text>
+            <Text style={styles.emptyText}>
+              {searchQuery
+                ? 'Aucune course ne correspond à votre recherche'
+                : 'Aucune course disponible'}
+            </Text>
           </View>
         ) : (
-          courses.map((course) => {
+          filteredAndSortedCourses.map((course) => {
             const statutColor = getStatutColor(course.statut);
 
             return (
@@ -302,19 +450,58 @@ const styles = StyleSheet.create({
     backgroundColor: BLUE_LIGHT,
     paddingTop: 5,
   },
+
   content: {
     padding: 16,
     paddingBottom: 90,
   },
+
+  filterContainer: {
+    gap: 10,
+    marginBottom: 8,
+  },
+
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+
+  searchInputOutline: {
+    borderRadius: 14,
+    borderColor: '#d6e4f0',
+  },
+
+   sortButton: {
+    alignSelf: 'flex-start',
+    borderRadius: 14,
+    borderColor: '#1976d2',
+    backgroundColor: '#ffffff',
+  },
+
+  sortButtonLabel: {
+    color: '#1976d2',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  resultText: {
+    marginBottom: 12,
+    color: '#607d8b',
+    fontSize: 13,
+    fontWeight: '500',
+  },
+
   card: {
     marginBottom: 12,
     borderRadius: 14,
   },
+
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
+
   iconBox: {
     width: 48,
     height: 48,
@@ -323,39 +510,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   info: {
     flex: 1,
   },
+
   objet: {
     fontWeight: 'bold',
     color: '#1f2937',
   },
+
   destination: {
     color: '#666',
     marginTop: 2,
   },
+
   chip: {
     alignSelf: 'flex-start',
   },
+
   details: {
     marginTop: 14,
     gap: 7,
   },
+
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
+
   detailText: {
     color: '#555',
     flex: 1,
   },
-  fab: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    backgroundColor: '#1976d2',
-  },
+
   centerContainer: {
     flex: 1,
     backgroundColor: BLUE_LIGHT,
@@ -363,31 +552,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
+
   loadingText: {
     marginTop: 12,
     color: '#666',
   },
+
   errorText: {
     marginTop: 12,
     textAlign: 'center',
     color: '#f44336',
   },
+
   retryButton: {
     marginTop: 16,
     borderRadius: 10,
     backgroundColor: '#1976d2',
   },
+
   retryButtonLabel: {
     color: '#ffffff',
   },
+
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
   },
+
   emptyText: {
     marginTop: 12,
     color: '#777',
     fontSize: 15,
+    textAlign: 'center',
   },
 });
