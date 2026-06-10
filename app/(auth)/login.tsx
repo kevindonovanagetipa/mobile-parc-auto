@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import { getValidToken } from '@/utils/authToken';
-import { View, StyleSheet, Alert, Image } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+} from 'react-native';
 import { TextInput, Button, Card, Text } from 'react-native-paper';
 import { router } from 'expo-router';
 
@@ -18,17 +26,13 @@ export default function Login() {
 
     const checkExistingSession = async () => {
       const token = await getValidToken();
-
       if (mounted && token) {
         router.replace(ROUTES.TABS);
       }
     };
 
     checkExistingSession();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   const handleLogin = async () => {
@@ -43,109 +47,106 @@ export default function Login() {
       await authService.login(email, password);
       router.replace(ROUTES.TABS);
     } catch (error: any) {
-      Alert.alert(
-        'Échec de connexion',
-        error.message || 'Identifiants invalides'
-      );
+      Alert.alert('Échec de connexion', error.message || 'Identifiants invalides');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Logo AGETIPA en haut à droite */}
-      <Image
-        source={require('@/assets/images/logo_agetipa.jpg')}
-        style={styles.logoAgetipa}
-        resizeMode="contain"
-      />
-
-      {/* Logo + Nom de l'appli */}
-      <View style={styles.header}>
+    <KeyboardAvoidingView
+      style={styles.keyboardView}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Logo AGETIPA en haut à droite */}
         <Image
-          source={require('@/assets/images/logo_parc_auto.png')}
-          style={styles.logo}
+          source={require('@/assets/images/logo_agetipa.jpg')}
+          style={styles.logoAgetipa}
           resizeMode="contain"
         />
 
-        <Text variant="headlineMedium" style={styles.appName}>
-          Parc Auto
-        </Text>
-
-        <Text variant="bodySmall" style={styles.appSubtitle}>
-          Gestion de flotte automobile
-        </Text>
-      </View>
-
-      {/* Carte de connexion */}
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleLarge" style={styles.title}>
-            Connexion
+        {/* Logo + Nom de l'appli */}
+        <View style={styles.header}>
+          <Image
+            source={require('@/assets/images/logo_parc_auto.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text variant="headlineMedium" style={styles.appName}>
+            Parc Auto
           </Text>
+          <Text variant="bodySmall" style={styles.appSubtitle}>
+            Gestion de flotte automobile
+          </Text>
+        </View>
 
-          <TextInput
-            label="Email"
-            mode="outlined"
-            style={styles.input}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-            outlineColor={COLORS.primary}
-            activeOutlineColor={COLORS.primaryDark}
-            left={
-              <TextInput.Icon
-                icon="email-outline"
-                color={COLORS.primary}
-              />
-            }
-          />
+        {/* Carte de connexion */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.title}>
+              Connexion
+            </Text>
 
-          <TextInput
-            label="Mot de passe"
-            mode="outlined"
-            secureTextEntry
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            outlineColor={COLORS.primary}
-            activeOutlineColor={COLORS.primaryDark}
-            left={
-              <TextInput.Icon
-                icon="lock-outline"
-                color={COLORS.primary}
-              />
-            }
-          />
+            <TextInput
+              label="Email"
+              mode="outlined"
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={<TextInput.Icon icon="email-outline" color={COLORS.primary} />}
+            />
 
-          <Button
-            mode="contained"
-            onPress={handleLogin}
-            style={styles.button}
-            contentStyle={styles.buttonContent}
-            buttonColor={COLORS.primary}
-            textColor={COLORS.surface}
-            loading={loading}
-            disabled={loading}
-          >
-            {loading ? 'Connexion...' : 'Se connecter'}
-          </Button>
-        </Card.Content>
-      </Card>
-    </View>
+            <TextInput
+              label="Mot de passe"
+              mode="outlined"
+              secureTextEntry
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              outlineColor={COLORS.primary}
+              activeOutlineColor={COLORS.primaryDark}
+              left={<TextInput.Icon icon="lock-outline" color={COLORS.primary} />}
+            />
+
+            <Button
+              mode="contained"
+              onPress={handleLogin}
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+              buttonColor={COLORS.primary}
+              textColor={COLORS.surface}
+              loading={loading}
+              disabled={loading}
+            >
+              {loading ? 'Connexion...' : 'Se connecter'}
+            </Button>
+          </Card.Content>
+        </Card>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  keyboardView: {
     flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: COLORS.background,
-    position: 'relative',
+    paddingTop: 60, // espace pour le logo AGETIPA absolu
   },
   logoAgetipa: {
     position: 'absolute',
