@@ -473,7 +473,6 @@ export default function CourseScreen() {
 
       <FAB
         icon="plus"
-        label="Ajouter"
         style={styles.fab}
         color={COLORS.surface}
         onPress={goToAddCourse}
@@ -628,7 +627,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 16,
-    bottom: 24,
+    bottom: 16,
     borderRadius: 16,
     backgroundColor: COLORS.primary,
   },

@@ -12,7 +12,11 @@ import { router } from 'expo-router';
 
 import { COLORS } from '@/constants/colors';
 import { ROUTES } from '@/constants/routes';
-import { CoursePayload, MoyenLocomotion, courseService } from '@/services/courseService';
+import {
+  CoursePayload,
+  MoyenLocomotion,
+  courseService,
+} from '@/services/courseService';
 
 type CourseFormData = {
   date_course: string;
@@ -22,7 +26,7 @@ type CourseFormData = {
   destination_itineraire: string;
   responsable: string;
   coursier: string;
-  moyen_locomotion: MoyenLocomotion;
+  moyen_locomotion: MoyenLocomotion | '';
 };
 
 const today = new Date().toISOString().split('T')[0];
@@ -34,34 +38,49 @@ const MOYENS_LOCOMOTION: MoyenLocomotion[] = [
   'voiture',
 ];
 
-const normalizeHeure = (heure: string): string => {
-  if (!heure) return heure;
-
-  const parts = heure.split(':');
-
-  if (parts.length === 2) {
-    return `${heure}:00`;
-  }
-
-  return heure;
+const isValidDate = (date: string) => {
+  return /^\d{4}-\d{2}-\d{2}$/.test(date);
 };
 
-const buildPayload = (formData: CourseFormData): CoursePayload => ({
-  date_course: formData.date_course.trim(),
-  heure_depart: normalizeHeure(formData.heure_depart.trim()),
-  heure_retour_prevue: formData.heure_retour_prevue.trim()
-    ? normalizeHeure(formData.heure_retour_prevue.trim())
-    : '',
-  objet_course: formData.objet_course.trim(),
-  destination_itineraire: formData.destination_itineraire.trim(),
-  responsable: formData.responsable.trim(),
-  coursier: formData.coursier.trim(),
-  moyen_locomotion: formData.moyen_locomotion,
-});
+const isValidTime = (heure: string) => {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(heure);
+};
+
+const normalizeHeure = (heure: string): string => {
+  const value = heure.trim();
+
+  if (!value) {
+    return value;
+  }
+
+  const parts = value.split(':');
+
+  if (parts.length === 2) {
+    return `${value}:00`;
+  }
+
+  return value;
+};
+
+const buildPayload = (formData: CourseFormData): CoursePayload => {
+  return {
+    date_course: formData.date_course.trim(),
+    heure_depart: normalizeHeure(formData.heure_depart),
+    heure_retour_prevue: formData.heure_retour_prevue.trim()
+      ? normalizeHeure(formData.heure_retour_prevue)
+      : undefined,
+    objet_course: formData.objet_course.trim(),
+    destination_itineraire: formData.destination_itineraire.trim(),
+    responsable: formData.responsable.trim(),
+    coursier: formData.coursier.trim(),
+    moyen_locomotion: formData.moyen_locomotion as MoyenLocomotion,
+  };
+};
 
 export default function AjouterCourse() {
   const [loading, setLoading] = useState(false);
   const [moyenMenuVisible, setMoyenMenuVisible] = useState(false);
+
   const [formData, setFormData] = useState<CourseFormData>({
     date_course: today,
     heure_depart: '',
@@ -98,6 +117,33 @@ export default function AjouterCourse() {
       }
     }
 
+    if (!isValidDate(formData.date_course.trim())) {
+      Alert.alert(
+        'Date invalide',
+        'Veuillez saisir la date au format AAAA-MM-JJ. Exemple : 2026-05-20.'
+      );
+      return false;
+    }
+
+    if (!isValidTime(formData.heure_depart.trim())) {
+      Alert.alert(
+        'Heure invalide',
+        "Veuillez saisir l'heure de départ au format HH:mm. Exemple : 08:00."
+      );
+      return false;
+    }
+
+    if (
+      formData.heure_retour_prevue.trim() &&
+      !isValidTime(formData.heure_retour_prevue.trim())
+    ) {
+      Alert.alert(
+        'Heure invalide',
+        "Veuillez saisir l'heure prévue pour le retour au format HH:mm. Exemple : 12:00."
+      );
+      return false;
+    }
+
     return true;
   };
 
@@ -107,14 +153,21 @@ export default function AjouterCourse() {
     setLoading(true);
 
     try {
-      await courseService.createCourse(buildPayload(formData));
+      const payload = buildPayload(formData);
+
+      console.log('Payload ajout course :', payload);
+
+      await courseService.createCourse(payload);
 
       Alert.alert('Succès', 'Course ajoutée avec succès');
       router.replace(ROUTES.COURSES);
     } catch (error: any) {
       console.log('Erreur ajout course :', error);
 
-      Alert.alert('Erreur', error.message || "Impossible d'ajouter la course.");
+      Alert.alert(
+        'Erreur',
+        error?.message || "Impossible d'ajouter la course."
+      );
     } finally {
       setLoading(false);
     }
@@ -178,7 +231,10 @@ export default function AjouterCourse() {
               outlineColor={COLORS.primary}
               activeOutlineColor={COLORS.primaryDark}
               left={
-                <TextInput.Icon icon="clock-check-outline" color={COLORS.primary} />
+                <TextInput.Icon
+                  icon="clock-check-outline"
+                  color={COLORS.primary}
+                />
               }
             />
 
@@ -199,7 +255,7 @@ export default function AjouterCourse() {
               value={formData.destination_itineraire}
               onChangeText={(v) => handleChange('destination_itineraire', v)}
               style={styles.input}
-              placeholder="Ex : AGETIPA → Ministère"
+              placeholder="Ex : AGETIPA - Ministère"
               multiline
               outlineColor={COLORS.primary}
               activeOutlineColor={COLORS.primaryDark}
