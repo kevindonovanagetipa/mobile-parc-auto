@@ -51,4 +51,22 @@ export const notificationService = {
 
     return Array.isArray(data) ? data : [];
   },
+  async deleteNotification(id: number) {
+  const token = await AsyncStorage.getItem('token');
+
+  const response = await fetch(`${API_BASE_URL}/api/notifications/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new Error(json?.message || 'Erreur lors de la suppression');
+  }
+
+  return json;
+}
 };

@@ -428,7 +428,6 @@ const styles = StyleSheet.create({
 
   card: {
     marginBottom: 12,
-    backgroundColor: COLORS.surface,
     borderRadius: 14,
   },
 
