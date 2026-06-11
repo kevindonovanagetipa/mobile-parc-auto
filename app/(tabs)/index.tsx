@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Card, Text, ActivityIndicator } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { API_BASE_URL } from '@/constants/api';
@@ -30,10 +31,49 @@ type StatCardItem = {
   color: string;
 };
 
+type QuickActionItem = {
+  label: string;
+  description: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  color: string;
+  route: string;
+};
+
 export default function Dashboard() {
   const [stats, setStats] = useState<StatCardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const quickActions: QuickActionItem[] = [
+    {
+      label: 'Mes réservations',
+      description: 'Voir vos demandes de réservation',
+      icon: 'calendar-check',
+      color: '#ff6d00',
+      route: '/reservations',
+    },
+    {
+      label: 'Mes courses',
+      description: 'Consulter vos courses',
+      icon: 'map-marker-path',
+      color: '#d50000',
+      route: '/courses',
+    },
+    {
+      label: 'Notifications',
+      description: 'Voir les dernières notifications',
+      icon: 'bell-outline',
+      color: '#1565c0',
+      route: '/notifications',
+    },
+    {
+      label: 'Nouvelle réservation',
+      description: 'Créer une demande rapidement',
+      icon: 'plus-circle',
+      color: '#2e7d32',
+      route: '/reservations/ajout',
+    },
+  ];
 
   const fetchDashboardStats = async () => {
     try {
@@ -75,31 +115,31 @@ export default function Dashboard() {
         const data: DashboardStats = result.data;
 
         const statsFormatees: StatCardItem[] = [
-  {
-    label: 'Véhicules',
-    value: String(data.totalVehicules ?? 0),
-    icon: 'car',
-    color: '#6200ee',
-  },
-  {
-    label: 'Chauffeurs',
-    value: String(data.totalChauffeurs ?? 0),
-    icon: 'account-tie',
-    color: '#03dac6',
-  },
-  {
-    label: 'Réservations',
-    value: String(data.totalReservations ?? 0),
-    icon: 'calendar',
-    color: '#ff6d00',
-  },
-  {
-    label: 'Courses',
-    value: String(data.totalCourses ?? 0),
-    icon: 'map-marker-path',
-    color: '#d50000',
-  },
-];
+          {
+            label: 'Véhicules',
+            value: String(data.totalVehicules ?? 0),
+            icon: 'car',
+            color: '#3e0096',
+          },
+          {
+            label: 'Chauffeurs',
+            value: String(data.totalChauffeurs ?? 0),
+            icon: 'account-tie',
+            color: '#000b68',
+          },
+          {
+            label: 'Réservations',
+            value: String(data.totalReservations ?? 0),
+            icon: 'calendar',
+            color: '#ff6d00',
+          },
+          {
+            label: 'Courses',
+            value: String(data.totalCourses ?? 0),
+            icon: 'map-marker-path',
+            color: '#d50000',
+          },
+        ];
 
         setStats(statsFormatees);
       } else {
@@ -159,47 +199,49 @@ export default function Dashboard() {
           </View>
 
           <Text variant="titleMedium" style={styles.sectionTitle}>
-            Activité récente
+            Actions rapides
           </Text>
 
-          <Card style={styles.activityCard}>
-            <Card.Content style={styles.activityRow}>
-              <MaterialCommunityIcons
-                name="calendar-clock"
-                size={18}
-                color={COLORS.primary}
-              />
-              <Text variant="bodyMedium" style={styles.activityText}>
-                Tableau de bord mis à jour avec les dernières statistiques.
-              </Text>
-            </Card.Content>
-          </Card>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.map((action) => (
+              <Card
+                key={action.label}
+                style={styles.quickActionCard}
+                onPress={() => router.push(action.route as never)}
+              >
+                <Card.Content style={styles.quickActionContent}>
+                  <View
+                    style={[
+                      styles.quickActionIconContainer,
+                      { backgroundColor: action.color + '20' },
+                    ]}
+                  >
+                    <MaterialCommunityIcons
+                      name={action.icon}
+                      size={24}
+                      color={action.color}
+                    />
+                  </View>
 
-          <Card style={styles.activityCard}>
-            <Card.Content style={styles.activityRow}>
-              <MaterialCommunityIcons
-                name="car"
-                size={18}
-                color={COLORS.primary}
-              />
-              <Text variant="bodyMedium" style={styles.activityText}>
-                Suivi global du parc automobile disponible.
-              </Text>
-            </Card.Content>
-          </Card>
+                  <View style={styles.quickActionTextContainer}>
+                    <Text variant="titleSmall" style={styles.quickActionTitle}>
+                      {action.label}
+                    </Text>
 
-          <Card style={styles.activityCard}>
-            <Card.Content style={styles.activityRow}>
-              <MaterialCommunityIcons
-                name="map-marker-path"
-                size={18}
-                color={COLORS.primary}
-              />
-              <Text variant="bodyMedium" style={styles.activityText}>
-                Les réservations et courses sont synchronisées avec le serveur.
-              </Text>
-            </Card.Content>
-          </Card>
+                    <Text variant="bodySmall" style={styles.quickActionDescription}>
+                      {action.description}
+                    </Text>
+                  </View>
+
+                  <MaterialCommunityIcons
+                    name="chevron-right"
+                    size={22}
+                    color={COLORS.textSecondary}
+                  />
+                </Card.Content>
+              </Card>
+            ))}
+          </View>
         </>
       )}
     </ScrollView>
@@ -245,19 +287,35 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: COLORS.primaryDark,
   },
-  activityCard: {
-    marginBottom: 8,
+  quickActionsGrid: {
+    gap: 10,
+  },
+  quickActionCard: {
     borderRadius: 12,
     backgroundColor: COLORS.surface,
   },
-  activityRow: {
+  quickActionContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
-  activityText: {
+  quickActionIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickActionTextContainer: {
     flex: 1,
+  },
+  quickActionTitle: {
+    fontWeight: '700',
     color: COLORS.text,
+  },
+  quickActionDescription: {
+    marginTop: 2,
+    color: COLORS.textSecondary,
   },
   loadingContainer: {
     paddingVertical: 50,
