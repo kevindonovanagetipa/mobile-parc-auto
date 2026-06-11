@@ -3,16 +3,17 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs, router } from 'expo-router';
 import { Image, Platform, Pressable, Text, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 
 import { COLORS } from '@/constants/colors';
 import { connectSocketWithAuth, socket } from '@/services/socket';
 
 // @ts-ignore: Asset import type declarations
 const logoParcAuto = require('../../assets/images/logo_parc_auto.png');
-
 // @ts-ignore: Asset import type declarations
 const logoAgetipa = require('../../assets/images/logo_agetipa.jpg');
 
+// Uniquement les notifications locales — pas de token distant
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldPlaySound: true,
@@ -42,7 +43,6 @@ function HeaderTitle() {
         }}
         resizeMode="contain"
       />
-
       <Text
         style={{
           fontSize: 20,
@@ -57,10 +57,7 @@ function HeaderTitle() {
   );
 }
 
-function HeaderRightLogo({
-  notificationCount,
-  onPressNotification,
-}: HeaderRightLogoProps) {
+function HeaderRightLogo({ notificationCount, onPressNotification }: HeaderRightLogoProps) {
   return (
     <View
       style={{
@@ -82,12 +79,7 @@ function HeaderRightLogo({
           position: 'relative',
         }}
       >
-        <MaterialCommunityIcons
-          name="bell-outline"
-          size={26}
-          color={COLORS.primaryDark}
-        />
-
+        <MaterialCommunityIcons name="bell-outline" size={26} color={COLORS.primaryDark} />
         {notificationCount > 0 && (
           <View
             style={{
@@ -105,13 +97,7 @@ function HeaderRightLogo({
               borderColor: COLORS.surface,
             }}
           >
-            <Text
-              style={{
-                color: '#fff',
-                fontSize: 10,
-                fontWeight: '700',
-              }}
-            >
+            <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
               {notificationCount > 99 ? '99+' : notificationCount}
             </Text>
           </View>
@@ -120,17 +106,19 @@ function HeaderRightLogo({
 
       <Image
         source={logoAgetipa}
-        style={{
-          width: 78,
-          height: 36,
-        }}
+        style={{ width: 78, height: 36 }}
         resizeMode="contain"
       />
     </View>
   );
 }
 
+// Vérifie si on tourne dans Expo Go (pas de push distant possible)
+const isExpoGo = Constants.appOwnership === 'expo';
+
 async function demanderPermissionNotification() {
+  // Dans Expo Go SDK 53+, on demande uniquement la permission locale
+  // sans tenter d'obtenir un token push distant
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('reservations', {
       name: 'Réservations',
@@ -141,13 +129,22 @@ async function demanderPermissionNotification() {
   }
 
   const permissionActuelle = await Notifications.getPermissionsAsync();
-
   if (permissionActuelle.status !== 'granted') {
     const nouvellePermission = await Notifications.requestPermissionsAsync();
-
     if (nouvellePermission.status !== 'granted') {
       console.log('Permission notification refusée');
       return false;
+    }
+  }
+
+  // NE PAS appeler getExpoPushTokenAsync() dans Expo Go SDK 53+
+  // Uniquement dans un development build ou production build
+  if (!isExpoGo) {
+    try {
+      const tokenData = await Notifications.getExpoPushTokenAsync();
+      console.log('Push token:', tokenData.data);
+    } catch (error) {
+      console.log('Token push non disponible:', error);
     }
   }
 
@@ -158,12 +155,10 @@ async function afficherNotificationLocale(notification: any, type: string) {
   const reservation = notification?.reservation;
 
   let titre = notification?.title || notification?.titre || 'Notification';
-  let message =
-    notification?.message || 'Vous avez reçu une nouvelle notification.';
+  let message = notification?.message || 'Vous avez reçu une nouvelle notification.';
 
   if (type === 'reservation_created') {
     titre = notification?.title || notification?.titre || 'Nouvelle réservation';
-
     message = reservation?.objet_deplacement
       ? `Nouvelle réservation : ${reservation.objet_deplacement}`
       : notification?.message || 'Une nouvelle réservation a été ajoutée.';
@@ -171,25 +166,29 @@ async function afficherNotificationLocale(notification: any, type: string) {
 
   if (type === 'reservation_validee' || type === 'reservation_validated') {
     titre = notification?.title || notification?.titre || 'Réservation validée';
-
     message = reservation?.objet_deplacement
       ? `Votre réservation pour ${reservation.objet_deplacement} a été validée.`
       : notification?.message || 'Votre réservation a été validée.';
   }
 
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: titre,
-      body: message,
-      data: {
-        type,
-        notificationId: notification?.id,
-        reservationId: reservation?.id,
+  try {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: titre,
+        body: message,
+        data: {
+          type,
+          notificationId: notification?.id,
+          reservationId: reservation?.id,
+        },
+        sound: true,
       },
-      sound: true,
-    },
-    trigger: null,
-  });
+      trigger: null,
+    });
+  } catch (error) {
+    // Les notifications locales peuvent aussi échouer dans certains contextes Expo Go
+    console.log('Notification locale non affichée (Expo Go) — compteur mis à jour');
+  }
 }
 
 export default function TabsLayout() {
@@ -200,49 +199,25 @@ export default function TabsLayout() {
 
     const handleReservationCreated = async (notification: any) => {
       console.log('Nouvelle notification réservation :', notification);
-
       setNotificationCount((prev) => prev + 1);
-
-      try {
-        await afficherNotificationLocale(notification, 'reservation_created');
-      } catch (error) {
-        console.log('Erreur affichage notification réservation :', error);
-      }
+      await afficherNotificationLocale(notification, 'reservation_created');
     };
 
     const handleReservationValidated = async (notification: any) => {
       console.log('Réservation validée :', notification);
-
       setNotificationCount((prev) => prev + 1);
-
-      try {
-        await afficherNotificationLocale(notification, 'reservation_validee');
-      } catch (error) {
-        console.log('Erreur affichage notification validation :', error);
-      }
+      await afficherNotificationLocale(notification, 'reservation_validee');
     };
 
     const handleGenericNotification = async (notification: any) => {
       console.log('Notification reçue :', notification);
-
       const type = notification?.type || 'notification';
-
       setNotificationCount((prev) => prev + 1);
-
-      try {
-        await afficherNotificationLocale(notification, type);
-      } catch (error) {
-        console.log('Erreur affichage notification générique :', error);
-      }
+      await afficherNotificationLocale(notification, type);
     };
 
-    const handleConnect = () => {
-      console.log('Connecté au WebSocket :', socket.id);
-    };
-
-    const handleDisconnect = () => {
-      console.log('Déconnecté du WebSocket');
-    };
+    const handleConnect = () => console.log('Connecté au WebSocket :', socket.id);
+    const handleDisconnect = () => console.log('Déconnecté du WebSocket');
 
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
@@ -278,9 +253,7 @@ export default function TabsLayout() {
           />
         ),
         headerTitleAlign: 'left',
-        headerStyle: {
-          backgroundColor: COLORS.surface,
-        },
+        headerStyle: { backgroundColor: COLORS.surface },
         headerShadowVisible: true,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textSecondary,
@@ -295,29 +268,19 @@ export default function TabsLayout() {
         options={{
           title: 'Dashboard',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="view-dashboard"
-              size={24}
-              color={color}
-            />
+            <MaterialCommunityIcons name="view-dashboard" size={24} color={color} />
           ),
         }}
       />
-
       <Tabs.Screen
         name="course"
         options={{
           title: 'Course',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="map-marker-path"
-              size={24}
-              color={color}
-            />
+            <MaterialCommunityIcons name="map-marker-path" size={24} color={color} />
           ),
         }}
       />
-
       <Tabs.Screen
         name="reservations"
         options={{
@@ -327,83 +290,30 @@ export default function TabsLayout() {
           ),
         }}
       />
-
       <Tabs.Screen
         name="chauffeurs"
         options={{
           title: 'Chauffeurs',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="account-tie"
-              size={24}
-              color={color}
-            />
+            <MaterialCommunityIcons name="account-tie" size={24} color={color} />
           ),
         }}
       />
-
       <Tabs.Screen
         name="more"
         options={{
           title: 'Plus',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="dots-horizontal"
-              size={24}
-              color={color}
-            />
+            <MaterialCommunityIcons name="dots-horizontal" size={24} color={color} />
           ),
         }}
       />
-
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          href: null,
-          title: 'Notifications',
-        }}
-      />
-
-      <Tabs.Screen
-        name="reservations/ajouter"
-        options={{
-          href: null,
-          title: 'Nouvelle réservation',
-        }}
-      />
-
-      <Tabs.Screen
-        name="reservations/modifier/[id]"
-        options={{
-          href: null,
-          title: 'Modifier la réservation',
-        }}
-      />
-
-
-      <Tabs.Screen
-        name="course/ajouter"
-        options={{
-          href: null,
-          title: 'Nouvelle course',
-        }}
-      />
-
-      <Tabs.Screen
-        name="course/modifier/[id]"
-        options={{
-          href: null,
-          title: 'Modifier la course',
-        }}
-      />
-
-      <Tabs.Screen
-        name="profil"
-        options={{
-          href: null,
-          title: 'Profil utilisateur',
-        }}
-      />
+      <Tabs.Screen name="notifications" options={{ href: null, title: 'Notifications' }} />
+      <Tabs.Screen name="reservations/ajouter" options={{ href: null, title: 'Nouvelle réservation' }} />
+      <Tabs.Screen name="reservations/modifier/[id]" options={{ href: null, title: 'Modifier la réservation' }} />
+      <Tabs.Screen name="course/ajouter" options={{ href: null, title: 'Nouvelle course' }} />
+      <Tabs.Screen name="course/modifier/[id]" options={{ href: null, title: 'Modifier la course' }} />
+      <Tabs.Screen name="profil" options={{ href: null, title: 'Profil utilisateur' }} />
     </Tabs>
   );
 }
