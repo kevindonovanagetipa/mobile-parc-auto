@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs, router } from 'expo-router';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Platform, Pressable, Text, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
 import { COLORS } from '@/constants/colors';
-import { socket } from '@/services/socket';
+import { connectSocketWithAuth, socket } from '@/services/socket';
 
 // @ts-ignore: Asset import type declarations
 const logoParcAuto = require('../../assets/images/logo_parc_auto.png');
@@ -155,22 +154,36 @@ async function demanderPermissionNotification() {
   return true;
 }
 
-async function afficherNotificationReservation(notification: any) {
+async function afficherNotificationLocale(notification: any, type: string) {
   const reservation = notification?.reservation;
 
-  const titre = notification?.title || 'Nouvelle réservation';
+  let titre = notification?.title || notification?.titre || 'Notification';
+  let message =
+    notification?.message || 'Vous avez reçu une nouvelle notification.';
 
-  const message =
-    reservation?.objet_deplacement
+  if (type === 'reservation_created') {
+    titre = notification?.title || notification?.titre || 'Nouvelle réservation';
+
+    message = reservation?.objet_deplacement
       ? `Nouvelle réservation : ${reservation.objet_deplacement}`
-      : notification?.message || 'Une nouvelle réservation a été ajoutée';
+      : notification?.message || 'Une nouvelle réservation a été ajoutée.';
+  }
+
+  if (type === 'reservation_validee' || type === 'reservation_validated') {
+    titre = notification?.title || notification?.titre || 'Réservation validée';
+
+    message = reservation?.objet_deplacement
+      ? `Votre réservation pour ${reservation.objet_deplacement} a été validée.`
+      : notification?.message || 'Votre réservation a été validée.';
+  }
 
   await Notifications.scheduleNotificationAsync({
     content: {
       title: titre,
       body: message,
       data: {
-        type: 'reservation_created',
+        type,
+        notificationId: notification?.id,
         reservationId: reservation?.id,
       },
       sound: true,
@@ -191,9 +204,35 @@ export default function TabsLayout() {
       setNotificationCount((prev) => prev + 1);
 
       try {
-        await afficherNotificationReservation(notification);
+        await afficherNotificationLocale(notification, 'reservation_created');
       } catch (error) {
-        console.log('Erreur affichage notification :', error);
+        console.log('Erreur affichage notification réservation :', error);
+      }
+    };
+
+    const handleReservationValidated = async (notification: any) => {
+      console.log('Réservation validée :', notification);
+
+      setNotificationCount((prev) => prev + 1);
+
+      try {
+        await afficherNotificationLocale(notification, 'reservation_validee');
+      } catch (error) {
+        console.log('Erreur affichage notification validation :', error);
+      }
+    };
+
+    const handleGenericNotification = async (notification: any) => {
+      console.log('Notification reçue :', notification);
+
+      const type = notification?.type || 'notification';
+
+      setNotificationCount((prev) => prev + 1);
+
+      try {
+        await afficherNotificationLocale(notification, type);
+      } catch (error) {
+        console.log('Erreur affichage notification générique :', error);
       }
     };
 
@@ -208,15 +247,17 @@ export default function TabsLayout() {
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
     socket.on('reservation:created', handleReservationCreated);
+    socket.on('reservation:validated', handleReservationValidated);
+    socket.on('notification', handleGenericNotification);
 
-    if (!socket.connected) {
-      socket.connect();
-    }
+    connectSocketWithAuth();
 
     return () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
       socket.off('reservation:created', handleReservationCreated);
+      socket.off('reservation:validated', handleReservationValidated);
+      socket.off('notification', handleGenericNotification);
     };
   }, []);
 
