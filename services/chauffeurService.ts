@@ -13,12 +13,14 @@ export interface Chauffeur {
   adresse: string;
   disponibilite: string;
   statut: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const chauffeurService = {
-  async getAll(page = 1, limit = 10): Promise<{ items: Chauffeur[]; pagination: any }> {
+  async getAll(): Promise<{ items: Chauffeur[]; pagination: any }> {
     const token = await AsyncStorage.getItem('token');
-    const response = await fetch(`${API_BASE_URL}/api/chauffeurs?page=${page}&limit=${limit}`, {
+    const response = await fetch(`${API_BASE_URL}/api/chauffeurs/disponibles`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
@@ -26,9 +28,11 @@ export const chauffeurService = {
     });
     const json = await response.json();
     if (!response.ok) throw new Error(json.message || 'Erreur chargement chauffeurs');
-    // Gère les deux structures : { data: { items } } ou { data: [] }
-    const data = json.data;
-    if (Array.isArray(data)) return { items: data, pagination: { page: 1, limit: data.length, total: data.length } };
-    return data;
+
+    const items: Chauffeur[] = Array.isArray(json.data) ? json.data : [];
+    return {
+      items,
+      pagination: { page: 1, limit: items.length, total: items.length },
+    };
   },
 };
