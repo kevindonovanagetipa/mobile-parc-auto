@@ -380,6 +380,23 @@ export default function TabsLayout() {
         }}
       />
 
+
+      <Tabs.Screen
+        name="course/ajouter"
+        options={{
+          href: null,
+          title: 'Nouvelle course',
+        }}
+      />
+
+      <Tabs.Screen
+        name="course/modifier/[id]"
+        options={{
+          href: null,
+          title: 'Modifier la course',
+        }}
+      />
+
       <Tabs.Screen
         name="profil"
         options={{
