@@ -88,7 +88,7 @@ const formatDate = (date?: string) => {
   return `${day}/${month}/${year}`;
 };
 
-const formatHeure = (heure?: string) => {
+const formatHeure = (heure?: string | null) => {
   if (!heure) return '-';
 
   if (heure.includes('T')) {

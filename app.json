@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#e6fde3",
+        "backgroundColor": "#4caf50",
         "foregroundImage": "./assets/images/logo_parc_auto.png"
       },
       "edgeToEdgeEnabled": true,

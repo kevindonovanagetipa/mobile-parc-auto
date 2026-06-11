@@ -1,28 +1,32 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { API_BASE_URL } from '@/constants/api';
 
-export type MoyenLocomotion = 'à pied' | 'moto' | 'bus' | 'voiture' | string;
+export type MoyenLocomotion = 'à pied' | 'moto' | 'bus' | 'voiture';
+
+export type StatutCourse = 'en_attente' | 'validee' | 'terminee' | 'annulee';
 
 export interface Course {
   id: number;
-  date_course: string;
+  date_course?: string;
   date?: string;
   heure_depart: string;
-  heure_retour_prevue?: string;
+  heure_retour_prevue?: string | null;
   objet_course: string;
   destination_itineraire: string;
   responsable: string;
   coursier: string;
   moyen_locomotion: MoyenLocomotion;
-  statut: 'en_attente' | 'validee' | 'terminee' | 'annulee' | string;
-  created_at: string;
+  statut: StatutCourse;
+  utilisateur_id?: number | null;
+  created_at?: string;
   updated_at?: string;
 }
 
 export interface CoursePayload {
   date_course: string;
   heure_depart: string;
-  heure_retour_prevue?: string;
+  heure_retour_prevue?: string | null;
   objet_course: string;
   destination_itineraire: string;
   responsable: string;
@@ -30,7 +34,13 @@ export interface CoursePayload {
   moyen_locomotion: MoyenLocomotion;
 }
 
-const getAuthHeaders = async () => {
+function getBaseUrl() {
+  return API_BASE_URL.endsWith('/')
+    ? API_BASE_URL.slice(0, -1)
+    : API_BASE_URL;
+}
+
+async function getAuthHeaders() {
   const token = await AsyncStorage.getItem('token');
 
   return {
@@ -38,111 +48,150 @@ const getAuthHeaders = async () => {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   };
-};
+}
 
-const extractOne = (json: any) => {
-  return json?.data || json?.item || json?.course || json;
-};
+function extractArrayResponse(json: any): Course[] {
+  const data =
+    json?.data?.courses ||
+    json?.data ||
+    json?.courses ||
+    json;
 
-const extractList = (json: any) => {
-  if (Array.isArray(json)) return json;
-  if (Array.isArray(json?.data)) return json.data;
-  if (Array.isArray(json?.items)) return json.items;
-  if (Array.isArray(json?.data?.items)) return json.data.items;
-  if (Array.isArray(json?.rows)) return json.rows;
-  if (Array.isArray(json?.data?.rows)) return json.data.rows;
-  if (Array.isArray(json?.courses)) return json.courses;
+  return Array.isArray(data) ? data : [];
+}
 
-  return [];
-};
+function extractOneResponse(json: any): Course {
+  return (
+    json?.data?.course ||
+    json?.data ||
+    json?.course ||
+    json
+  );
+}
 
-const readJson = async (response: Response) => {
+async function parseResponse(response: Response) {
   const text = await response.text();
 
-  if (!text) return {};
-
   try {
-    return JSON.parse(text);
+    return text ? JSON.parse(text) : {};
   } catch {
     return {};
   }
-};
+}
 
 export const courseService = {
-  // Liste les courses → GET /api/courses
+  /**
+   * Liste uniquement les courses de l'utilisateur connecté.
+   * Endpoint backend : GET /api/courses/me
+   */
   async getCourses(): Promise<Course[]> {
-    const headers = await getAuthHeaders();
+  const response = await fetch(`${getBaseUrl()}/api/courses/me`, {
+    method: 'GET',
+    headers: await getAuthHeaders(),
+  });
 
-    const response = await fetch(`${API_BASE_URL}/api/courses`, {
-      method: 'GET',
-      headers,
-    });
+  const json = await parseResponse(response);
+  console.log('Response status:', response.status);
+  console.log('Response JSON:', JSON.stringify(json, null, 2)); // ← ajoutez ça
 
-    const json = await readJson(response);
+  if (!response.ok) {
+    throw new Error(json?.message || 'Erreur lors du chargement de vos courses');
+  }
 
-    if (!response.ok) {
-      throw new Error(json.message || 'Impossible de charger les courses.');
-    }
+  return extractArrayResponse(json);
+},
 
-    return extractList(json);
+  /**
+   * Alias si tu veux appeler explicitement les courses personnelles.
+   */
+  async getMesCourses(): Promise<Course[]> {
+    return this.getCourses();
   },
 
-  // Récupérer une course par ID → GET /api/courses/:id
+  /**
+   * Récupérer une course par son ID.
+   * Endpoint backend : GET /api/courses/:id
+   */
   async getCourseById(id: number | string): Promise<Course> {
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(`${API_BASE_URL}/api/courses/${id}`, {
+    const response = await fetch(`${getBaseUrl()}/api/courses/${id}`, {
       method: 'GET',
-      headers,
+      headers: await getAuthHeaders(),
     });
 
-    const json = await readJson(response);
+    const json = await parseResponse(response);
 
     if (!response.ok) {
-      throw new Error(json.message || 'Impossible de charger la course.');
+      throw new Error(
+        json?.message || 'Erreur lors du chargement de la course'
+      );
     }
 
-    return extractOne(json);
+    return extractOneResponse(json);
   },
 
-  // Ajouter une course → POST /api/courses
-  async createCourse(data: CoursePayload): Promise<Course> {
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(`${API_BASE_URL}/api/courses`, {
+  /**
+   * Ajouter une nouvelle course.
+   * Endpoint backend : POST /api/courses
+   */
+  async createCourse(payload: CoursePayload): Promise<Course> {
+    const response = await fetch(`${getBaseUrl()}/api/courses`, {
       method: 'POST',
-      headers,
-      body: JSON.stringify(data),
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(payload),
     });
 
-    const json = await readJson(response);
+    const json = await parseResponse(response);
 
     if (!response.ok) {
-      throw new Error(json.message || "Impossible d'ajouter la course.");
+      throw new Error(
+        json?.message || "Erreur lors de l'ajout de la course"
+      );
     }
 
-    return extractOne(json);
+    return extractOneResponse(json);
   },
 
-  // Modifier une course → PUT /api/courses/:id
+  /**
+   * Modifier une course.
+   * Endpoint backend : PUT /api/courses/:id
+   */
   async updateCourse(
     id: number | string,
-    data: CoursePayload
+    payload: CoursePayload
   ): Promise<Course> {
-    const headers = await getAuthHeaders();
-
-    const response = await fetch(`${API_BASE_URL}/api/courses/${id}`, {
+    const response = await fetch(`${getBaseUrl()}/api/course/${id}`, {
       method: 'PUT',
-      headers,
-      body: JSON.stringify(data),
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(payload),
     });
 
-    const json = await readJson(response);
+    const json = await parseResponse(response);
 
     if (!response.ok) {
-      throw new Error(json.message || 'Impossible de modifier la course.');
+      throw new Error(
+        json?.message || 'Erreur lors de la modification de la course'
+      );
     }
 
-    return extractOne(json);
+    return extractOneResponse(json);
+  },
+
+  /**
+   * Supprimer une course si ton backend possède cette API.
+   * Endpoint backend : DELETE /api/courses/:id
+   */
+  async deleteCourse(id: number | string): Promise<void> {
+    const response = await fetch(`${getBaseUrl()}/api/courses/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+
+    const json = await parseResponse(response);
+
+    if (!response.ok) {
+      throw new Error(
+        json?.message || 'Erreur lors de la suppression de la course'
+      );
+    }
   },
 };
