@@ -1,14 +1,32 @@
+import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
-import { Image, Text, View } from 'react-native';
+import { Tabs, router } from 'expo-router';
+import { Image, Pressable, Text, View } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 import { COLORS } from '@/constants/colors';
+import { socket } from '@/services/socket';
 
 // @ts-ignore: Asset import type declarations
 const logoParcAuto = require('../../assets/images/logo_parc_auto.png');
 
 // @ts-ignore: Asset import type declarations
 const logoAgetipa = require('../../assets/images/logo_agetipa.jpg');
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
+type HeaderRightLogoProps = {
+  notificationCount: number;
+  onPressNotification: () => void;
+};
 
 function HeaderTitle() {
   return (
@@ -40,15 +58,67 @@ function HeaderTitle() {
   );
 }
 
-function HeaderRightLogo() {
+function HeaderRightLogo({
+  notificationCount,
+  onPressNotification,
+}: HeaderRightLogoProps) {
   return (
     <View
       style={{
         marginRight: 14,
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
+        gap: 14,
       }}
     >
+      <Pressable
+        onPress={onPressNotification}
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 19,
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
+        <MaterialCommunityIcons
+          name="bell-outline"
+          size={26}
+          color={COLORS.primaryDark}
+        />
+
+        {notificationCount > 0 && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 2,
+              right: 2,
+              minWidth: 18,
+              height: 18,
+              borderRadius: 9,
+              paddingHorizontal: 4,
+              backgroundColor: 'red',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 1.5,
+              borderColor: COLORS.surface,
+            }}
+          >
+            <Text
+              style={{
+                color: '#fff',
+                fontSize: 10,
+                fontWeight: '700',
+              }}
+            >
+              {notificationCount > 99 ? '99+' : notificationCount}
+            </Text>
+          </View>
+        )}
+      </Pressable>
+
       <Image
         source={logoAgetipa}
         style={{
@@ -61,13 +131,111 @@ function HeaderRightLogo() {
   );
 }
 
+async function demanderPermissionNotification() {
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('reservations', {
+      name: 'Réservations',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF0000',
+    });
+  }
+
+  const permissionActuelle = await Notifications.getPermissionsAsync();
+
+  if (permissionActuelle.status !== 'granted') {
+    const nouvellePermission = await Notifications.requestPermissionsAsync();
+
+    if (nouvellePermission.status !== 'granted') {
+      console.log('Permission notification refusée');
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function afficherNotificationReservation(notification: any) {
+  const reservation = notification?.reservation;
+
+  const titre = notification?.title || 'Nouvelle réservation';
+
+  const message =
+    reservation?.objet_deplacement
+      ? `Nouvelle réservation : ${reservation.objet_deplacement}`
+      : notification?.message || 'Une nouvelle réservation a été ajoutée';
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: titre,
+      body: message,
+      data: {
+        type: 'reservation_created',
+        reservationId: reservation?.id,
+      },
+      sound: true,
+    },
+    trigger: null,
+  });
+}
+
 export default function TabsLayout() {
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    demanderPermissionNotification();
+
+    const handleReservationCreated = async (notification: any) => {
+      console.log('Nouvelle notification réservation :', notification);
+
+      setNotificationCount((prev) => prev + 1);
+
+      try {
+        await afficherNotificationReservation(notification);
+      } catch (error) {
+        console.log('Erreur affichage notification :', error);
+      }
+    };
+
+    const handleConnect = () => {
+      console.log('Connecté au WebSocket :', socket.id);
+    };
+
+    const handleDisconnect = () => {
+      console.log('Déconnecté du WebSocket');
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('reservation:created', handleReservationCreated);
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('reservation:created', handleReservationCreated);
+    };
+  }, []);
+
+  const handleNotificationPress = () => {
+    setNotificationCount(0);
+    router.push('/notifications');
+  };
+
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
         headerTitle: () => <HeaderTitle />,
-        headerRight: () => <HeaderRightLogo />,
+        headerRight: () => (
+          <HeaderRightLogo
+            notificationCount={notificationCount}
+            onPressNotification={handleNotificationPress}
+          />
+        ),
         headerTitleAlign: 'left',
         headerStyle: {
           backgroundColor: COLORS.surface,
@@ -147,7 +315,14 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* Page cachée dans la barre de navigation */}
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          href: null,
+          title: 'Notifications',
+        }}
+      />
+
       <Tabs.Screen
         name="reservations/ajouter"
         options={{
