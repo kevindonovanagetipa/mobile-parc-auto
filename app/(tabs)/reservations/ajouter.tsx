@@ -235,7 +235,7 @@ export default function AjouterReservation() {
 
         const [vehiculesData, chauffeursData] = await Promise.all([
           fetchAllPages(`${API_BASE_URL}/api/vehicules`, headers),
-          fetchAllPages(`${API_BASE_URL}/api/chauffeurs`, headers),
+          fetchAllPages(`${API_BASE_URL}/api/chauffeurs/disponibles`, headers),
         ]);
 
         setVehicules(vehiculesData);

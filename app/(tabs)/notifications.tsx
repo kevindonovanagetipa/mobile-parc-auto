@@ -24,62 +24,33 @@ function getNotificationTitle(notification: NotificationItem) {
 }
 
 function getNotificationMessage(notification: NotificationItem) {
-  if (notification?.message) {
-    return notification.message;
-  }
-
-  if (notification?.type === 'reservation_validee') {
-    return 'Votre réservation a été validée.';
-  }
-
-  if (notification?.type === 'reservation_created') {
-    return 'Une nouvelle réservation a été ajoutée.';
-  }
-
+  if (notification?.message) return notification.message;
+  if (notification?.type === 'reservation_validee') return 'Votre réservation a été validée.';
+  if (notification?.type === 'reservation_created') return 'Une nouvelle réservation a été ajoutée.';
   return 'Vous avez reçu une nouvelle notification.';
 }
 
 function getNotificationIcon(type?: string) {
-  if (type === 'reservation_validee' || type === 'reservation_validated') {
-    return 'check-circle-outline';
-  }
-
-  if (type === 'reservation_created') {
-    return 'calendar-plus';
-  }
-
+  if (type === 'reservation_validee' || type === 'reservation_validated') return 'check-circle-outline';
+  if (type === 'reservation_created') return 'calendar-plus';
   return 'bell-outline';
 }
 
 function getNotificationDate(dateValue?: string) {
-  if (!dateValue) {
-    return '';
-  }
-
+  if (!dateValue) return '';
   const date = new Date(dateValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  const jour = String(date.getDate()).padStart(2, '0');
-  const mois = String(date.getMonth() + 1).padStart(2, '0');
-  const annee = date.getFullYear();
-  const heure = String(date.getHours()).padStart(2, '0');
+  if (Number.isNaN(date.getTime())) return '';
+  const jour   = String(date.getDate()).padStart(2, '0');
+  const mois   = String(date.getMonth() + 1).padStart(2, '0');
+  const annee  = date.getFullYear();
+  const heure  = String(date.getHours()).padStart(2, '0');
   const minute = String(date.getMinutes()).padStart(2, '0');
-
   return `${jour}/${mois}/${annee} à ${heure}:${minute}`;
 }
 
 function isNotificationRead(notification: NotificationItem) {
-  if (typeof notification.lu === 'boolean') {
-    return notification.lu;
-  }
-
-  if (typeof notification.is_read === 'boolean') {
-    return notification.is_read;
-  }
-
+  if (typeof notification.lu === 'boolean') return notification.lu;
+  if (typeof notification.is_read === 'boolean') return notification.is_read;
   return false;
 }
 
@@ -92,15 +63,11 @@ export default function NotificationsScreen() {
   const chargerNotifications = useCallback(async () => {
     try {
       setErrorMessage('');
-
       const data = await notificationService.getMesNotifications();
-
       setNotifications(data);
     } catch (error: any) {
       console.log('Erreur notifications :', error);
-      setErrorMessage(
-        error?.message || 'Impossible de charger les notifications.'
-      );
+      setErrorMessage(error?.message || 'Impossible de charger les notifications.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -111,6 +78,34 @@ export default function NotificationsScreen() {
     chargerNotifications();
   }, [chargerNotifications]);
 
+  // Marque toutes les notifications non lues comme lues à l'ouverture de la page
+  useEffect(() => {
+    const marquerCommeLues = async () => {
+      const nonLues = notifications.filter((n) => !isNotificationRead(n));
+      if (nonLues.length === 0) return;
+
+      // Mise à jour locale immédiate (UX fluide)
+      setNotifications((prev) =>
+        prev.map((n) =>
+          isNotificationRead(n) ? n : { ...n, lu: true, is_read: true }
+        )
+      );
+
+      // Appel API en arrière-plan pour chaque notification non lue
+      for (const n of nonLues) {
+        try {
+          await (notificationService as any).marquerCommeLue(n.id);
+        } catch (error) {
+          console.log(`Erreur marquage notification ${n.id} :`, error);
+        }
+      }
+    };
+
+    if (notifications.length > 0) {
+      marquerCommeLues();
+    }
+  }, [notifications.length]);
+
   const handleRefresh = () => {
     setRefreshing(true);
     chargerNotifications();
@@ -120,7 +115,6 @@ export default function NotificationsScreen() {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-
         <Text variant="bodyMedium" style={styles.loadingText}>
           Chargement des notifications...
         </Text>
@@ -143,14 +137,8 @@ export default function NotificationsScreen() {
       {!!errorMessage && (
         <Card style={styles.errorCard}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.errorTitle}>
-              Erreur
-            </Text>
-
-            <Text variant="bodyMedium" style={styles.errorText}>
-              {errorMessage}
-            </Text>
-
+            <Text variant="titleMedium" style={styles.errorTitle}>Erreur</Text>
+            <Text variant="bodyMedium" style={styles.errorText}>{errorMessage}</Text>
             <Button
               mode="contained"
               onPress={chargerNotifications}
@@ -168,18 +156,10 @@ export default function NotificationsScreen() {
         <Card style={styles.card}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.iconBox}>
-              <MaterialCommunityIcons
-                name="bell-outline"
-                size={28}
-                color={COLORS.primary}
-              />
+              <MaterialCommunityIcons name="bell-outline" size={28} color={COLORS.primary} />
             </View>
-
             <View style={styles.textBox}>
-              <Text variant="titleMedium" style={styles.cardTitle}>
-                Aucune notification
-              </Text>
-
+              <Text variant="titleMedium" style={styles.cardTitle}>Aucune notification</Text>
               <Text variant="bodyMedium" style={styles.cardText}>
                 Les nouvelles notifications apparaîtront ici.
               </Text>
@@ -190,40 +170,29 @@ export default function NotificationsScreen() {
 
       {!errorMessage &&
         notifications.map((notification) => {
-          const title = getNotificationTitle(notification);
+          const title   = getNotificationTitle(notification);
           const message = getNotificationMessage(notification);
-          const icon = getNotificationIcon(notification.type);
-          const date = getNotificationDate(notification.created_at);
-          const isRead = isNotificationRead(notification);
+          const icon    = getNotificationIcon(notification.type);
+          const date    = getNotificationDate(notification.created_at);
+          const isRead  = isNotificationRead(notification);
 
           return (
             <Card key={String(notification.id)} style={styles.card}>
               <Card.Content style={styles.cardContent}>
                 <View style={styles.iconBox}>
-                  <MaterialCommunityIcons
-                    name={icon}
-                    size={28}
-                    color={COLORS.primary}
-                  />
+                  <MaterialCommunityIcons name={icon} size={28} color={COLORS.primary} />
                 </View>
-
                 <View style={styles.textBox}>
                   <View style={styles.titleRow}>
                     <Text variant="titleMedium" style={styles.cardTitle}>
                       {title}
                     </Text>
-
+                    {/* Point rouge uniquement si non lue */}
                     {!isRead && <View style={styles.unreadDot} />}
                   </View>
-
-                  <Text variant="bodyMedium" style={styles.cardText}>
-                    {message}
-                  </Text>
-
+                  <Text variant="bodyMedium" style={styles.cardText}>{message}</Text>
                   {!!date && (
-                    <Text variant="bodySmall" style={styles.dateText}>
-                      {date}
-                    </Text>
+                    <Text variant="bodySmall" style={styles.dateText}>{date}</Text>
                   )}
                 </View>
               </Card.Content>
