@@ -1,17 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   ActivityIndicator,
   Button,
   Card,
   Chip,
   Divider,
+  FAB,
   Menu,
   Text,
   TextInput,
 } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
+import { router } from 'expo-router';
+
+import { COLORS } from '@/constants/colors';
+import { ROUTES } from '@/constants/routes';
 import { Course, courseService } from '@/services/courseService';
 
 const BLUE_LIGHT = '#e6fde3';
@@ -86,6 +97,8 @@ const formatHeure = (heure?: string) => {
 
   return heure.substring(0, 5);
 };
+
+const getCourseDate = (course: Course) => course.date_course || course.date || '';
 
 const getTimeFromDate = (date?: string) => {
   if (!date) return 0;
@@ -169,11 +182,11 @@ export default function CourseScreen() {
 
     return [...filteredCourses].sort((a, b) => {
       if (sortOption === 'date_desc') {
-        return getTimeFromDate(b.date_course) - getTimeFromDate(a.date_course);
+        return getTimeFromDate(getCourseDate(b)) - getTimeFromDate(getCourseDate(a));
       }
 
       if (sortOption === 'date_asc') {
-        return getTimeFromDate(a.date_course) - getTimeFromDate(b.date_course);
+        return getTimeFromDate(getCourseDate(a)) - getTimeFromDate(getCourseDate(b));
       }
 
       if (sortOption === 'nom_asc') {
@@ -191,6 +204,17 @@ export default function CourseScreen() {
   const handleSelectSort = (option: SortOption) => {
     setSortOption(option);
     setSortMenuVisible(false);
+  };
+
+  const goToAddCourse = () => {
+    router.push(ROUTES.ADD_COURSE);
+  };
+
+  const goToUpdateCourse = (id: number) => {
+    router.push({
+      pathname: '/(tabs)/course/modifier/[id]',
+      params: { id },
+    });
   };
 
   if (loading) {
@@ -323,123 +347,137 @@ export default function CourseScreen() {
             const statutColor = getStatutColor(course.statut);
 
             return (
-              <Card key={course.id} style={styles.card}>
-                <Card.Content>
-                  <View style={styles.headerRow}>
-                    <View style={styles.iconBox}>
-                      <MaterialCommunityIcons
-                        name={getMoyenIcon(course.moyen_locomotion)}
-                        size={34}
-                        color="#1976d2"
-                      />
+              <TouchableOpacity
+                key={course.id}
+                activeOpacity={0.8}
+                onPress={() => goToUpdateCourse(course.id)}
+              >
+                <Card style={styles.card}>
+                  <Card.Content>
+                    <View style={styles.headerRow}>
+                      <View style={styles.iconBox}>
+                        <MaterialCommunityIcons
+                          name={getMoyenIcon(course.moyen_locomotion)}
+                          size={34}
+                          color="#1976d2"
+                        />
+                      </View>
+
+                      <View style={styles.info}>
+                        <Text variant="titleMedium" style={styles.objet}>
+                          {course.objet_course}
+                        </Text>
+
+                        <Text variant="bodySmall" style={styles.destination}>
+                          {course.destination_itineraire}
+                        </Text>
+                      </View>
+
+                      <Chip
+                        style={[
+                          styles.chip,
+                          {
+                            backgroundColor: `${statutColor}22`,
+                          },
+                        ]}
+                        textStyle={{
+                          color: statutColor,
+                          fontSize: 11,
+                          fontWeight: '600',
+                        }}
+                      >
+                        {getStatutLabel(course.statut)}
+                      </Chip>
                     </View>
 
-                    <View style={styles.info}>
-                      <Text variant="titleMedium" style={styles.objet}>
-                        {course.objet_course}
-                      </Text>
+                    <View style={styles.details}>
+                      <View style={styles.detailRow}>
+                        <MaterialCommunityIcons
+                          name="calendar"
+                          size={18}
+                          color="#666"
+                        />
 
-                      <Text variant="bodySmall" style={styles.destination}>
-                        {course.destination_itineraire}
-                      </Text>
+                        <Text variant="bodySmall" style={styles.detailText}>
+                          Date : {formatDate(getCourseDate(course))}
+                        </Text>
+                      </View>
+
+                      <View style={styles.detailRow}>
+                        <MaterialCommunityIcons
+                          name="clock-outline"
+                          size={18}
+                          color="#666"
+                        />
+
+                        <Text variant="bodySmall" style={styles.detailText}>
+                          Départ : {formatHeure(course.heure_depart)}
+                        </Text>
+                      </View>
+
+                      <View style={styles.detailRow}>
+                        <MaterialCommunityIcons
+                          name="clock-check-outline"
+                          size={18}
+                          color="#666"
+                        />
+
+                        <Text variant="bodySmall" style={styles.detailText}>
+                          Retour prévu : {formatHeure(course.heure_retour_prevue)}
+                        </Text>
+                      </View>
+
+                      <View style={styles.detailRow}>
+                        <MaterialCommunityIcons
+                          name="account-tie"
+                          size={18}
+                          color="#666"
+                        />
+
+                        <Text variant="bodySmall" style={styles.detailText}>
+                          Responsable : {course.responsable}
+                        </Text>
+                      </View>
+
+                      <View style={styles.detailRow}>
+                        <MaterialCommunityIcons
+                          name="account"
+                          size={18}
+                          color="#666"
+                        />
+
+                        <Text variant="bodySmall" style={styles.detailText}>
+                          Coursier : {course.coursier}
+                        </Text>
+                      </View>
+
+                      <View style={styles.detailRow}>
+                        <MaterialCommunityIcons
+                          name="map-marker-path"
+                          size={18}
+                          color="#666"
+                        />
+
+                        <Text variant="bodySmall" style={styles.detailText}>
+                          Moyen : {course.moyen_locomotion}
+                        </Text>
+                      </View>
                     </View>
-
-                    <Chip
-                      style={[
-                        styles.chip,
-                        {
-                          backgroundColor: `${statutColor}22`,
-                        },
-                      ]}
-                      textStyle={{
-                        color: statutColor,
-                        fontSize: 11,
-                        fontWeight: '600',
-                      }}
-                    >
-                      {getStatutLabel(course.statut)}
-                    </Chip>
-                  </View>
-
-                  <View style={styles.details}>
-                    <View style={styles.detailRow}>
-                      <MaterialCommunityIcons
-                        name="calendar"
-                        size={18}
-                        color="#666"
-                      />
-
-                      <Text variant="bodySmall" style={styles.detailText}>
-                        Date : {formatDate(course.date_course)}
-                      </Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <MaterialCommunityIcons
-                        name="clock-outline"
-                        size={18}
-                        color="#666"
-                      />
-
-                      <Text variant="bodySmall" style={styles.detailText}>
-                        Départ : {formatHeure(course.heure_depart)}
-                      </Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <MaterialCommunityIcons
-                        name="clock-check-outline"
-                        size={18}
-                        color="#666"
-                      />
-
-                      <Text variant="bodySmall" style={styles.detailText}>
-                        Retour prévu : {formatHeure(course.heure_retour_prevue)}
-                      </Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <MaterialCommunityIcons
-                        name="account-tie"
-                        size={18}
-                        color="#666"
-                      />
-
-                      <Text variant="bodySmall" style={styles.detailText}>
-                        Responsable : {course.responsable}
-                      </Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <MaterialCommunityIcons
-                        name="account"
-                        size={18}
-                        color="#666"
-                      />
-
-                      <Text variant="bodySmall" style={styles.detailText}>
-                        Coursier : {course.coursier}
-                      </Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <MaterialCommunityIcons
-                        name="map-marker-path"
-                        size={18}
-                        color="#666"
-                      />
-
-                      <Text variant="bodySmall" style={styles.detailText}>
-                        Moyen : {course.moyen_locomotion}
-                      </Text>
-                    </View>
-                  </View>
-                </Card.Content>
-              </Card>
+                  </Card.Content>
+                </Card>
+              </TouchableOpacity>
             );
           })
         )}
       </ScrollView>
+
+      <FAB
+        icon="plus"
+        label="Ajouter"
+        style={styles.fab}
+        color={COLORS.surface}
+        onPress={goToAddCourse}
+      />
     </>
   );
 }
@@ -585,5 +623,13 @@ const styles = StyleSheet.create({
     color: '#777',
     fontSize: 15,
     textAlign: 'center',
+  },
+
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 24,
+    borderRadius: 16,
+    backgroundColor: COLORS.primary,
   },
 });
