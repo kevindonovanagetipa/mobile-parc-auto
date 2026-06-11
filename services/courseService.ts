@@ -159,7 +159,7 @@ export const courseService = {
     id: number | string,
     payload: CoursePayload
   ): Promise<Course> {
-    const response = await fetch(`${getBaseUrl()}/api/course/${id}`, {
+    const response = await fetch(`${getBaseUrl()}/api/courses/${id}`, {
       method: 'PUT',
       headers: await getAuthHeaders(),
       body: JSON.stringify(payload),

@@ -22,7 +22,7 @@ type CourseFormData = {
   destination_itineraire: string;
   responsable: string;
   coursier: string;
-  moyen_locomotion: MoyenLocomotion;
+  moyen_locomotion: MoyenLocomotion | '';
 };
 
 const MOYENS_LOCOMOTION: MoyenLocomotion[] = [
@@ -32,22 +32,23 @@ const MOYENS_LOCOMOTION: MoyenLocomotion[] = [
   'voiture',
 ];
 
+const MOYENS_LOCOMOTION_LABELS: Record<MoyenLocomotion, string> = {
+  'à pied': 'À pied',
+  'moto': 'Moto',
+  'bus': 'Bus',
+  'voiture': 'Voiture',
+};
+
 const formatDateInput = (value?: string) => {
   if (!value) return '';
-
-  if (value.includes('T')) {
-    return value.split('T')[0];
-  }
-
+  if (value.includes('T')) return value.split('T')[0];
   return value.slice(0, 10);
 };
 
-const formatTimeInput = (value?: string) => {
+const formatTimeInput = (value?: string | null) => {
   if (!value) return '';
-
   if (value.includes('T')) {
     const date = new Date(value);
-
     if (!Number.isNaN(date.getTime())) {
       return date.toLocaleTimeString('fr-FR', {
         hour: '2-digit',
@@ -56,19 +57,13 @@ const formatTimeInput = (value?: string) => {
       });
     }
   }
-
   return value.slice(0, 5);
 };
 
 const normalizeHeure = (heure: string): string => {
   if (!heure) return heure;
-
   const parts = heure.split(':');
-
-  if (parts.length === 2) {
-    return `${heure}:00`;
-  }
-
+  if (parts.length === 2) return `${heure}:00`;
   return heure;
 };
 
@@ -77,12 +72,12 @@ const buildPayload = (formData: CourseFormData): CoursePayload => ({
   heure_depart: normalizeHeure(formData.heure_depart.trim()),
   heure_retour_prevue: formData.heure_retour_prevue.trim()
     ? normalizeHeure(formData.heure_retour_prevue.trim())
-    : '',
+    : null,
   objet_course: formData.objet_course.trim(),
   destination_itineraire: formData.destination_itineraire.trim(),
   responsable: formData.responsable.trim(),
   coursier: formData.coursier.trim(),
-  moyen_locomotion: formData.moyen_locomotion,
+  moyen_locomotion: formData.moyen_locomotion as MoyenLocomotion,
 });
 
 export default function ModifierCourse() {
@@ -123,11 +118,10 @@ export default function ModifierCourse() {
           destination_itineraire: course.destination_itineraire || '',
           responsable: course.responsable || '',
           coursier: course.coursier || '',
-          moyen_locomotion: course.moyen_locomotion || '',
+          moyen_locomotion: (course.moyen_locomotion as MoyenLocomotion) || '',
         });
       } catch (error: any) {
         console.log('Erreur chargement course :', error);
-
         Alert.alert('Erreur', error.message || 'Impossible de charger la course.');
         router.back();
       } finally {
@@ -139,10 +133,7 @@ export default function ModifierCourse() {
   }, [id]);
 
   const handleChange = (field: keyof CourseFormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const validateForm = (): boolean => {
@@ -173,12 +164,10 @@ export default function ModifierCourse() {
 
     try {
       await courseService.updateCourse(id, buildPayload(formData));
-
       Alert.alert('Succès', 'Course modifiée avec succès');
       router.replace(ROUTES.COURSES);
     } catch (error: any) {
       console.log('Erreur modification course :', error);
-
       Alert.alert('Erreur', error.message || 'Impossible de modifier la course.');
     } finally {
       setLoading(false);
@@ -208,7 +197,6 @@ export default function ModifierCourse() {
           <Text variant="headlineSmall" style={styles.title}>
             Modifier la course
           </Text>
-
           <Text variant="bodyMedium" style={styles.subtitle}>
             Mettez à jour les informations de la course
           </Text>
@@ -237,9 +225,7 @@ export default function ModifierCourse() {
               placeholder="Ex : 08:00"
               outlineColor={COLORS.primary}
               activeOutlineColor={COLORS.primaryDark}
-              left={
-                <TextInput.Icon icon="clock-outline" color={COLORS.primary} />
-              }
+              left={<TextInput.Icon icon="clock-outline" color={COLORS.primary} />}
             />
 
             <TextInput
@@ -251,9 +237,7 @@ export default function ModifierCourse() {
               placeholder="Ex : 12:00"
               outlineColor={COLORS.primary}
               activeOutlineColor={COLORS.primaryDark}
-              left={
-                <TextInput.Icon icon="clock-check-outline" color={COLORS.primary} />
-              }
+              left={<TextInput.Icon icon="clock-check-outline" color={COLORS.primary} />}
             />
 
             <TextInput
@@ -303,7 +287,6 @@ export default function ModifierCourse() {
 
             <View style={styles.selectContainer}>
               <Text style={styles.selectLabel}>Moyen de locomotion *</Text>
-
               <Menu
                 visible={moyenMenuVisible}
                 onDismiss={() => setMoyenMenuVisible(false)}
@@ -317,14 +300,16 @@ export default function ModifierCourse() {
                     style={styles.selectButton}
                     contentStyle={styles.selectButtonContent}
                   >
-                    {formData.moyen_locomotion || 'Sélectionner un moyen'}
+                    {formData.moyen_locomotion
+                      ? MOYENS_LOCOMOTION_LABELS[formData.moyen_locomotion as MoyenLocomotion]
+                      : 'Sélectionner un moyen'}
                   </Button>
                 }
               >
                 {MOYENS_LOCOMOTION.map((moyen) => (
                   <Menu.Item
                     key={moyen}
-                    title={moyen}
+                    title={MOYENS_LOCOMOTION_LABELS[moyen]}
                     titleStyle={
                       moyen === formData.moyen_locomotion
                         ? styles.menuItemSelected
