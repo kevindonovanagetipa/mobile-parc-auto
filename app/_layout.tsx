@@ -2,6 +2,9 @@ import { useEffect } from 'react';
 import { Stack, router } from 'expo-router';
 import { PaperProvider } from 'react-native-paper';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
 import { getValidToken } from '@/utils/authToken';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -38,14 +41,25 @@ function AuthGate() {
 
 export default function RootLayout() {
   return (
-    <PaperProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+    <SafeAreaProvider>
+      <PaperProvider>
+        <StatusBar style="dark" backgroundColor="#ffffff" />
 
-      <AuthGate />
-    </PaperProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: {
+              backgroundColor: '#ffffff',
+            },
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+
+        <AuthGate />
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }
