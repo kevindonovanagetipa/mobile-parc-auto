@@ -2,9 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { API_BASE_URL } from '@/constants/api';
 
-export type MoyenLocomotion = 'à pied' | 'moto' | 'bus' | 'voiture';
+export type MoyenLocomotion = 'à pied' | 'a pied' | 'moto' | 'bus' | 'voiture';
 
-export type StatutCourse = 'en_attente' | 'validee' | 'terminee' | 'annulee';
+export type StatutCourse =
+  | 'en_attente'
+  | 'validee'
+  | 'refusee'
+  | 'annulee'
+  | 'terminee';
 
 export interface Course {
   id: number;
@@ -32,6 +37,11 @@ export interface CoursePayload {
   responsable: string;
   coursier: string;
   moyen_locomotion: MoyenLocomotion;
+
+  /**
+   * Le backend met "en_attente" par défaut si statut n'est pas envoyé.
+   */
+  statut?: StatutCourse;
 }
 
 function getBaseUrl() {
@@ -40,33 +50,26 @@ function getBaseUrl() {
     : API_BASE_URL;
 }
 
+async function getToken() {
+  return (
+    (await AsyncStorage.getItem('token')) ||
+    (await AsyncStorage.getItem('accessToken')) ||
+    (await AsyncStorage.getItem('authToken'))
+  );
+}
+
 async function getAuthHeaders() {
-  const token = await AsyncStorage.getItem('token');
+  const token = await getToken();
+
+  if (!token) {
+    throw new Error('Token introuvable. Veuillez vous reconnecter.');
+  }
 
   return {
     Accept: 'application/json',
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   };
-}
-
-function extractArrayResponse(json: any): Course[] {
-  const data =
-    json?.data?.courses ||
-    json?.data ||
-    json?.courses ||
-    json;
-
-  return Array.isArray(data) ? data : [];
-}
-
-function extractOneResponse(json: any): Course {
-  return (
-    json?.data?.course ||
-    json?.data ||
-    json?.course ||
-    json
-  );
 }
 
 async function parseResponse(response: Response) {
@@ -79,30 +82,84 @@ async function parseResponse(response: Response) {
   }
 }
 
+function extractArrayResponse(json: any): Course[] {
+  const data =
+    json?.data?.courses ||
+    json?.data?.items ||
+    json?.data?.rows ||
+    json?.data?.recordset ||
+    json?.data ||
+    json?.courses ||
+    json?.items ||
+    json?.rows ||
+    json?.recordset ||
+    json;
+
+  return Array.isArray(data) ? data : [];
+}
+
+function extractOneResponse(json: any): Course {
+  return (
+    json?.data?.course ||
+    json?.data?.item ||
+    json?.data ||
+    json?.course ||
+    json?.item ||
+    json
+  );
+}
+
+function normalizeCoursePayload(payload: CoursePayload) {
+  return {
+    date_course: payload.date_course,
+    heure_depart: payload.heure_depart,
+    heure_retour_prevue: payload.heure_retour_prevue || null,
+    objet_course: payload.objet_course,
+    destination_itineraire: payload.destination_itineraire,
+    responsable: payload.responsable,
+    coursier: payload.coursier,
+    moyen_locomotion: payload.moyen_locomotion,
+    ...(payload.statut ? { statut: payload.statut } : {}),
+  };
+}
+
 export const courseService = {
   /**
-   * Liste uniquement les courses de l'utilisateur connecté.
-   * Endpoint backend : GET /api/courses/me
+   * Liste toutes les courses.
+   * Backend : GET /api/courses
+   *
+   * Tu ne passes plus par /api/courses/me.
    */
-  async getCourses(): Promise<Course[]> {
-  const response = await fetch(`${getBaseUrl()}/api/courses/me`, {
+  async getCourses(page = 1, limit = 100): Promise<Course[]> {
+  const url = `${getBaseUrl()}/api/courses?page=${page}&limit=${limit}`;
+
+  console.log('URL courses utilisée :', url);
+
+  const response = await fetch(url, {
     method: 'GET',
     headers: await getAuthHeaders(),
   });
 
   const json = await parseResponse(response);
-  console.log('Response status:', response.status);
-  console.log('Response JSON:', JSON.stringify(json, null, 2)); // ← ajoutez ça
+
+  console.log('GET /api/courses status:', response.status);
+  console.log('GET /api/courses json:', JSON.stringify(json, null, 2));
 
   if (!response.ok) {
-    throw new Error(json?.message || 'Erreur lors du chargement de vos courses');
+    throw new Error(
+      json?.message ||
+        json?.error ||
+        'Erreur lors du chargement des courses'
+    );
   }
 
   return extractArrayResponse(json);
 },
 
   /**
-   * Alias si tu veux appeler explicitement les courses personnelles.
+   * Alias conservé pour éviter de casser les anciens imports.
+   * Attention : cette méthode retourne maintenant toutes les courses,
+   * car elle appelle getCourses().
    */
   async getMesCourses(): Promise<Course[]> {
     return this.getCourses();
@@ -110,7 +167,7 @@ export const courseService = {
 
   /**
    * Récupérer une course par son ID.
-   * Endpoint backend : GET /api/courses/:id
+   * Backend : GET /api/courses/:id
    */
   async getCourseById(id: number | string): Promise<Course> {
     const response = await fetch(`${getBaseUrl()}/api/courses/${id}`, {
@@ -122,7 +179,9 @@ export const courseService = {
 
     if (!response.ok) {
       throw new Error(
-        json?.message || 'Erreur lors du chargement de la course'
+        json?.message ||
+          json?.error ||
+          'Erreur lors du chargement de la course'
       );
     }
 
@@ -131,20 +190,24 @@ export const courseService = {
 
   /**
    * Ajouter une nouvelle course.
-   * Endpoint backend : POST /api/courses
+   * Backend : POST /api/courses
+   *
+   * Le backend ajoute automatiquement utilisateur_id avec req.user.id.
    */
   async createCourse(payload: CoursePayload): Promise<Course> {
     const response = await fetch(`${getBaseUrl()}/api/courses`, {
       method: 'POST',
       headers: await getAuthHeaders(),
-      body: JSON.stringify(payload),
+      body: JSON.stringify(normalizeCoursePayload(payload)),
     });
 
     const json = await parseResponse(response);
 
     if (!response.ok) {
       throw new Error(
-        json?.message || "Erreur lors de l'ajout de la course"
+        json?.message ||
+          json?.error ||
+          "Erreur lors de l'ajout de la course"
       );
     }
 
@@ -153,7 +216,9 @@ export const courseService = {
 
   /**
    * Modifier une course.
-   * Endpoint backend : PUT /api/courses/:id
+   * Backend : PUT /api/courses/:id
+   *
+   * Ton backend attend tous les champs de la course.
    */
   async updateCourse(
     id: number | string,
@@ -162,14 +227,16 @@ export const courseService = {
     const response = await fetch(`${getBaseUrl()}/api/courses/${id}`, {
       method: 'PUT',
       headers: await getAuthHeaders(),
-      body: JSON.stringify(payload),
+      body: JSON.stringify(normalizeCoursePayload(payload)),
     });
 
     const json = await parseResponse(response);
 
     if (!response.ok) {
       throw new Error(
-        json?.message || 'Erreur lors de la modification de la course'
+        json?.message ||
+          json?.error ||
+          'Erreur lors de la modification de la course'
       );
     }
 
@@ -177,8 +244,38 @@ export const courseService = {
   },
 
   /**
-   * Supprimer une course si ton backend possède cette API.
-   * Endpoint backend : DELETE /api/courses/:id
+   * Modifier uniquement le statut d'une course.
+   * Backend : PATCH /api/courses/:id/statut
+   *
+   * Statuts acceptés par ton backend :
+   * en_attente, validee, refusee, annulee, terminee
+   */
+  async updateCourseStatus(
+    id: number | string,
+    statut: StatutCourse
+  ): Promise<Course> {
+    const response = await fetch(`${getBaseUrl()}/api/courses/${id}/statut`, {
+      method: 'PATCH',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ statut }),
+    });
+
+    const json = await parseResponse(response);
+
+    if (!response.ok) {
+      throw new Error(
+        json?.message ||
+          json?.error ||
+          'Erreur lors de la mise à jour du statut de la course'
+      );
+    }
+
+    return extractOneResponse(json);
+  },
+
+  /**
+   * Supprimer une course.
+   * Backend : DELETE /api/courses/:id
    */
   async deleteCourse(id: number | string): Promise<void> {
     const response = await fetch(`${getBaseUrl()}/api/courses/${id}`, {
@@ -190,7 +287,9 @@ export const courseService = {
 
     if (!response.ok) {
       throw new Error(
-        json?.message || 'Erreur lors de la suppression de la course'
+        json?.message ||
+          json?.error ||
+          'Erreur lors de la suppression de la course'
       );
     }
   },

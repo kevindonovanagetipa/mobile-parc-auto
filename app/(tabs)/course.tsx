@@ -31,42 +31,57 @@ type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 type SortOption = 'date_desc' | 'date_asc' | 'nom_asc' | 'nom_desc';
 
-const getStatutColor = (statut: string) => {
+const getStatutColor = (statut?: string) => {
   switch (statut) {
     case 'validee':
       return '#4caf50';
+
     case 'terminee':
       return '#1976d2';
+
     case 'annulee':
       return '#f44336';
+
+    case 'refusee':
+      return '#9e9e9e';
+
     case 'en_attente':
     default:
       return '#ff9800';
   }
 };
 
-const getStatutLabel = (statut: string) => {
+const getStatutLabel = (statut?: string) => {
   switch (statut) {
     case 'validee':
       return 'Validée';
+
     case 'terminee':
       return 'Terminée';
+
     case 'annulee':
       return 'Annulée';
+
+    case 'refusee':
+      return 'Refusée';
+
     case 'en_attente':
     default:
       return 'En attente';
   }
 };
 
-const getMoyenIcon = (moyen: string): IconName => {
+const getMoyenIcon = (moyen?: string): IconName => {
   switch (moyen) {
     case 'voiture':
       return 'car';
+
     case 'moto':
       return 'motorbike';
+
     case 'bus':
       return 'bus';
+
     case 'à pied':
     case 'a pied':
     default:
@@ -98,7 +113,9 @@ const formatHeure = (heure?: string | null) => {
   return heure.substring(0, 5);
 };
 
-const getCourseDate = (course: Course) => course.date_course || course.date || '';
+const getCourseDate = (course: Course) => {
+  return course.date_course || course.date || '';
+};
 
 const getTimeFromDate = (date?: string) => {
   if (!date) return 0;
@@ -112,12 +129,16 @@ const getSortLabel = (sortOption: SortOption) => {
   switch (sortOption) {
     case 'date_desc':
       return 'Date récente';
+
     case 'date_asc':
       return 'Date ancienne';
+
     case 'nom_asc':
       return 'Nom A-Z';
+
     case 'nom_desc':
       return 'Nom Z-A';
+
     default:
       return 'Trier';
   }
@@ -136,10 +157,8 @@ export default function CourseScreen() {
   const loadCourses = async () => {
     try {
       setErrorMessage('');
-
       const data = await courseService.getCourses();
-
-      setCourses(data);
+      setCourses(Array.isArray(data) ? data : []);
     } catch (error) {
       const message =
         error instanceof Error
@@ -173,7 +192,9 @@ export default function CourseScreen() {
         course.coursier,
         course.moyen_locomotion,
         getStatutLabel(course.statut),
+        formatDate(getCourseDate(course)),
       ]
+        .filter(Boolean)
         .join(' ')
         .toLowerCase();
 
@@ -190,11 +211,11 @@ export default function CourseScreen() {
       }
 
       if (sortOption === 'nom_asc') {
-        return a.objet_course.localeCompare(b.objet_course);
+        return String(a.objet_course || '').localeCompare(String(b.objet_course || ''));
       }
 
       if (sortOption === 'nom_desc') {
-        return b.objet_course.localeCompare(a.objet_course);
+        return String(b.objet_course || '').localeCompare(String(a.objet_course || ''));
       }
 
       return 0;
@@ -213,7 +234,7 @@ export default function CourseScreen() {
   const goToUpdateCourse = (id: number) => {
     router.push({
       pathname: '/(tabs)/course/modifier/[id]',
-      params: { id },
+      params: { id: String(id) },
     });
   };
 
@@ -221,6 +242,7 @@ export default function CourseScreen() {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" />
+        <Text style={styles.loadingText}>Chargement des courses...</Text>
       </View>
     );
   }
@@ -365,11 +387,11 @@ export default function CourseScreen() {
 
                       <View style={styles.info}>
                         <Text variant="titleMedium" style={styles.objet}>
-                          {course.objet_course}
+                          {course.objet_course || 'Course sans objet'}
                         </Text>
 
                         <Text variant="bodySmall" style={styles.destination}>
-                          {course.destination_itineraire}
+                          {course.destination_itineraire || '-'}
                         </Text>
                       </View>
 
@@ -435,7 +457,7 @@ export default function CourseScreen() {
                         />
 
                         <Text variant="bodySmall" style={styles.detailText}>
-                          Responsable : {course.responsable}
+                          Responsable : {course.responsable || '-'}
                         </Text>
                       </View>
 
@@ -447,7 +469,7 @@ export default function CourseScreen() {
                         />
 
                         <Text variant="bodySmall" style={styles.detailText}>
-                          Coursier : {course.coursier}
+                          Coursier : {course.coursier || '-'}
                         </Text>
                       </View>
 
@@ -459,7 +481,7 @@ export default function CourseScreen() {
                         />
 
                         <Text variant="bodySmall" style={styles.detailText}>
-                          Moyen : {course.moyen_locomotion}
+                          Moyen : {course.moyen_locomotion || '-'}
                         </Text>
                       </View>
                     </View>
@@ -508,7 +530,7 @@ const styles = StyleSheet.create({
     borderColor: '#d6e4f0',
   },
 
-   sortButton: {
+  sortButton: {
     alignSelf: 'flex-start',
     borderRadius: 14,
     borderColor: '#1976d2',

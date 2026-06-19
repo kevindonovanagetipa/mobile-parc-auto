@@ -243,26 +243,32 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: true,
-        headerTitle: () => <HeaderTitle />,
-        headerRight: () => (
-          <HeaderRightLogo
-            notificationCount={notificationCount}
-            onPressNotification={handleNotificationPress}
-          />
-        ),
-        headerTitleAlign: 'left',
-        headerStyle: { backgroundColor: COLORS.surface },
-        headerShadowVisible: true,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textSecondary,
-        tabBarStyle: {
-          backgroundColor: COLORS.surface,
-          borderTopColor: COLORS.border,
-        },
-      }}
-    >
+  screenOptions={{
+    headerShown: true,
+    headerTitle: () => <HeaderTitle />,
+    headerRight: () => (
+      <HeaderRightLogo
+        notificationCount={notificationCount}
+        onPressNotification={handleNotificationPress}
+      />
+    ),
+    headerTitleAlign: 'left',
+    headerStyle: { backgroundColor: COLORS.surface },
+    headerShadowVisible: true,
+    tabBarActiveTintColor: COLORS.primary,
+    tabBarInactiveTintColor: COLORS.textSecondary,
+
+    tabBarStyle: {
+      backgroundColor: COLORS.surface,
+      borderTopColor: COLORS.border,
+    },
+
+    tabBarLabelStyle: {
+      fontSize: 12,
+      marginBottom: 4,
+    },
+  }}
+>
       <Tabs.Screen
         name="index"
         options={{
