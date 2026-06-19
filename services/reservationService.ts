@@ -12,9 +12,12 @@ export interface Reservation {
   heure_retour: string;
   nombre_passager: number;
   passagers: string;
-  vehicule_id: number;
+
+  // Modifié : accepte null
+  vehicule_id: number | null;
   utilisateur_id: number | null;
-  chauffeur_id: number;
+  chauffeur_id: number | null;
+
   statut: 'en_attente' | 'validee' | 'terminee' | 'annulee';
   created_at: string;
 }
@@ -29,18 +32,25 @@ export interface CreateReservationPayload {
   heure_retour: string;
   nombre_passager: number;
   passagers: string;
-  vehicule_id: number;
-  utilisateur_id: number | null;
-  chauffeur_id: number;
+
+  // Modifié : accepte null
+  vehicule_id?: number | null;
+  utilisateur_id?: number | null;
+  chauffeur_id?: number | null;
+
   statut: 'en_attente' | 'validee' | 'terminee' | 'annulee';
 }
 
 export interface UpdateReservationPayload extends CreateReservationPayload {}
 
 const getAuthHeaders = async () => {
-  const token = await AsyncStorage.getItem('token');
+  const token =
+    (await AsyncStorage.getItem('token')) ||
+    (await AsyncStorage.getItem('accessToken')) ||
+    (await AsyncStorage.getItem('authToken'));
 
   return {
+    Accept: 'application/json',
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   };
@@ -61,16 +71,56 @@ const extractList = (json: any) => {
   return [];
 };
 
+const parseResponse = async (response: Response) => {
+  const text = await response.text();
+
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return {};
+  }
+};
+
+/**
+ * Important :
+ * JSON.stringify supprime les champs undefined.
+ * Donc on force vehicule_id et chauffeur_id à null
+ * pour que le backend reçoive quand même les champs.
+ */
+const normalizeReservationPayload = (
+  data: CreateReservationPayload | UpdateReservationPayload
+) => {
+  return {
+    objet_deplacement: data.objet_deplacement,
+    date_depart: data.date_depart,
+    heure_depart: data.heure_depart,
+    lieu_depart: data.lieu_depart,
+    destination_itineraire: data.destination_itineraire,
+    date_retour: data.date_retour,
+    heure_retour: data.heure_retour,
+    nombre_passager: Number(data.nombre_passager || 0),
+    passagers: data.passagers,
+
+    // Ici on garde les champs, même s'ils sont vides
+    vehicule_id: data.vehicule_id ?? null,
+    utilisateur_id: data.utilisateur_id ?? null,
+    chauffeur_id: data.chauffeur_id ?? null,
+
+    statut: data.statut || 'en_attente',
+  };
+};
+
 export const reservationService = {
   // Liste les réservations de l'utilisateur connecté → GET /api/reservations/me
   async getMesReservations(): Promise<Reservation[]> {
     const headers = await getAuthHeaders();
 
     const response = await fetch(`${API_BASE_URL}/api/reservations/me`, {
+      method: 'GET',
       headers,
     });
 
-    const json = await response.json();
+    const json = await parseResponse(response);
 
     if (!response.ok) {
       throw new Error(json.message || 'Erreur chargement réservations');
@@ -88,7 +138,7 @@ export const reservationService = {
       headers,
     });
 
-    const json = await response.json();
+    const json = await parseResponse(response);
 
     if (!response.ok) {
       throw new Error(
@@ -103,13 +153,17 @@ export const reservationService = {
   async createReservation(data: CreateReservationPayload): Promise<Reservation> {
     const headers = await getAuthHeaders();
 
+    const payload = normalizeReservationPayload(data);
+
+    console.log('Payload réservation envoyé :', payload);
+
     const response = await fetch(`${API_BASE_URL}/api/reservations`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
 
-    const json = await response.json();
+    const json = await parseResponse(response);
 
     if (!response.ok) {
       throw new Error(
@@ -127,13 +181,17 @@ export const reservationService = {
   ): Promise<Reservation> {
     const headers = await getAuthHeaders();
 
+    const payload = normalizeReservationPayload(data);
+
+    console.log('Payload modification réservation envoyé :', payload);
+
     const response = await fetch(`${API_BASE_URL}/api/reservations/${id}`, {
       method: 'PUT',
       headers,
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
 
-    const json = await response.json();
+    const json = await parseResponse(response);
 
     if (!response.ok) {
       throw new Error(

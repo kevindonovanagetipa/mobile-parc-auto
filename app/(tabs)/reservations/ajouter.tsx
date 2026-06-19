@@ -6,36 +6,19 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from 'react-native';
 import {
   TextInput,
   Button,
   Card,
   Text,
-  Menu,
 } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
-import { API_BASE_URL } from '@/constants/api';
 import { ROUTES } from '@/constants/routes';
 import { COLORS } from '@/constants/colors';
 import { reservationService } from '@/services/reservationService';
-
-type Vehicule = {
-  id: number;
-  marque?: string;
-  modele?: string;
-  numero_vehicule?: string;
-  numero_immatriculation?: string;
-};
-
-type Chauffeur = {
-  id: number;
-  nom?: string;
-  prenom?: string;
-};
 
 type ReservationFormData = {
   objet_deplacement: string;
@@ -47,112 +30,11 @@ type ReservationFormData = {
   heure_retour: string;
   nombre_passager: string;
   passagers: string;
-  vehicule_id: string;
   utilisateur_id: string;
-  chauffeur_id: string;
   statut: 'en_attente' | 'validee' | 'terminee' | 'annulee';
 };
 
 const today = new Date().toISOString().split('T')[0];
-
-const extractList = (data: any): any[] => {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.data)) return data.data;
-  if (Array.isArray(data?.items)) return data.items;
-  if (Array.isArray(data?.data?.items)) return data.data.items;
-  if (Array.isArray(data?.rows)) return data.rows;
-  if (Array.isArray(data?.data?.rows)) return data.data.rows;
-
-  return [];
-};
-
-const fetchAllPages = async (
-  url: string,
-  headers: Record<string, string>
-): Promise<any[]> => {
-  let allItems: any[] = [];
-  let page = 1;
-  const limit = 100;
-  let hasMore = true;
-
-  while (hasMore) {
-    const separator = url.includes('?') ? '&' : '?';
-    const requestUrl = `${url}${separator}page=${page}&limit=${limit}`;
-
-    const response = await fetch(requestUrl, {
-      method: 'GET',
-      headers,
-    });
-
-    if (response.status === 401 || response.status === 403) {
-      throw new Error('Session expirée. Veuillez vous reconnecter.');
-    }
-
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP ${response.status}`);
-    }
-
-    const json = await response.json();
-    const items = extractList(json);
-
-    allItems = [...allItems, ...items];
-
-    const totalPages =
-      json?.totalPages ??
-      json?.data?.totalPages ??
-      json?.pagination?.totalPages ??
-      json?.data?.pagination?.totalPages ??
-      json?.meta?.totalPages ??
-      json?.data?.meta?.totalPages ??
-      null;
-
-    const total =
-      json?.total ??
-      json?.data?.total ??
-      json?.count ??
-      json?.data?.count ??
-      json?.pagination?.total ??
-      json?.data?.pagination?.total ??
-      json?.meta?.total ??
-      json?.data?.meta?.total ??
-      null;
-
-    if (totalPages !== null) {
-      hasMore = page < Number(totalPages);
-    } else if (total !== null) {
-      hasMore = allItems.length < Number(total);
-    } else {
-      hasMore = items.length === limit;
-    }
-
-    page += 1;
-  }
-
-  return allItems;
-};
-
-const getNomVoiture = (vehicule: Vehicule): string => {
-  const nom = [vehicule.marque, vehicule.numero_immatriculation]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
-
-  return (
-    nom ||
-    vehicule.numero_vehicule ||
-    vehicule.numero_immatriculation ||
-    `Véhicule ${vehicule.id}`
-  );
-};
-
-const getNomChauffeur = (chauffeur: Chauffeur): string => {
-  const nom = [chauffeur.prenom, chauffeur.nom]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
-
-  return nom || `Chauffeur ${chauffeur.id}`;
-};
 
 const normalizeHeure = (heure: string): string => {
   if (!heure) return heure;
@@ -168,13 +50,6 @@ const normalizeHeure = (heure: string): string => {
 
 export default function AjouterReservation() {
   const [loading, setLoading] = useState(false);
-  const [loadingOptions, setLoadingOptions] = useState(false);
-
-  const [vehicules, setVehicules] = useState<Vehicule[]>([]);
-  const [chauffeurs, setChauffeurs] = useState<Chauffeur[]>([]);
-
-  const [vehiculeMenuVisible, setVehiculeMenuVisible] = useState(false);
-  const [chauffeurMenuVisible, setChauffeurMenuVisible] = useState(false);
 
   const [formData, setFormData] = useState<ReservationFormData>({
     objet_deplacement: '',
@@ -186,9 +61,7 @@ export default function AjouterReservation() {
     heure_retour: '',
     nombre_passager: '1',
     passagers: '',
-    vehicule_id: '',
     utilisateur_id: '',
-    chauffeur_id: '',
     statut: 'en_attente',
   });
 
@@ -213,63 +86,12 @@ export default function AjouterReservation() {
     loadUser();
   }, []);
 
-  useEffect(() => {
-    const fetchOptions = async () => {
-      setLoadingOptions(true);
-
-      try {
-        const token = await AsyncStorage.getItem('token');
-
-        if (!token) {
-          Alert.alert(
-            'Erreur',
-            "Token d'accès introuvable. Veuillez vous reconnecter."
-          );
-          return;
-        }
-
-        const headers = {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        };
-
-        const [vehiculesData, chauffeursData] = await Promise.all([
-          fetchAllPages(`${API_BASE_URL}/api/vehicules`, headers),
-          fetchAllPages(`${API_BASE_URL}/api/chauffeurs/disponibles`, headers),
-        ]);
-
-        setVehicules(vehiculesData);
-        setChauffeurs(chauffeursData);
-      } catch (error: any) {
-        console.log('Erreur chargement véhicules/chauffeurs :', error);
-
-        Alert.alert(
-          'Erreur',
-          error.message ||
-            'Impossible de charger les véhicules et les chauffeurs.'
-        );
-      } finally {
-        setLoadingOptions(false);
-      }
-    };
-
-    fetchOptions();
-  }, []);
-
   const handleChange = (field: keyof ReservationFormData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
-
-  const selectedVehicule = vehicules.find(
-    (v) => String(v.id) === formData.vehicule_id
-  );
-
-  const selectedChauffeur = chauffeurs.find(
-    (c) => String(c.id) === formData.chauffeur_id
-  );
 
   const validateForm = (): boolean => {
     const checks: [string, boolean][] = [
@@ -284,8 +106,6 @@ export default function AjouterReservation() {
       ['la date de retour', !formData.date_retour.trim()],
       ["l'heure de retour", !formData.heure_retour.trim()],
       ['les passagers', !formData.passagers.trim()],
-      ['une voiture', !formData.vehicule_id],
-      ['un chauffeur', !formData.chauffeur_id],
     ];
 
     for (const [label, invalid] of checks) {
@@ -313,20 +133,24 @@ export default function AjouterReservation() {
 
     try {
       await reservationService.createReservation({
-        objet_deplacement: formData.objet_deplacement,
+        objet_deplacement: formData.objet_deplacement.trim(),
         date_depart: formData.date_depart,
         heure_depart: normalizeHeure(formData.heure_depart),
-        lieu_depart: formData.lieu_depart,
-        destination_itineraire: formData.destination_itineraire,
+        lieu_depart: formData.lieu_depart.trim(),
+        destination_itineraire: formData.destination_itineraire.trim(),
         date_retour: formData.date_retour,
         heure_retour: normalizeHeure(formData.heure_retour),
         nombre_passager: Number(formData.nombre_passager),
-        passagers: formData.passagers,
-        vehicule_id: Number(formData.vehicule_id),
+        passagers: formData.passagers.trim(),
+
+        // Champs obligatoires côté backend, mais non sélectionnés côté mobile
+        vehicule_id: null,
+        chauffeur_id: null,
+
         utilisateur_id: formData.utilisateur_id
           ? Number(formData.utilisateur_id)
           : null,
-        chauffeur_id: Number(formData.chauffeur_id),
+
         statut: formData.statut,
       });
 
@@ -494,138 +318,6 @@ export default function AjouterReservation() {
               activeOutlineColor={COLORS.primaryDark}
             />
 
-            <View style={styles.selectContainer}>
-              <Text style={styles.selectLabel}>Voiture *</Text>
-
-              <Menu
-                visible={vehiculeMenuVisible}
-                onDismiss={() => setVehiculeMenuVisible(false)}
-                contentStyle={styles.menuContent}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setVehiculeMenuVisible(true)}
-                    disabled={loadingOptions}
-                    icon="car"
-                    textColor={COLORS.primaryDark}
-                    style={styles.selectButton}
-                    contentStyle={styles.selectButtonContent}
-                  >
-                    {selectedVehicule
-                      ? getNomVoiture(selectedVehicule)
-                      : loadingOptions
-                        ? 'Chargement...'
-                        : 'Sélectionner une voiture'}
-                  </Button>
-                }
-              >
-                {loadingOptions ? (
-                  <View style={styles.loadingMenu}>
-                    <ActivityIndicator
-                      size="small"
-                      color={COLORS.primary}
-                    />
-                    <Text style={styles.loadingText}>Chargement...</Text>
-                  </View>
-                ) : vehicules.length > 0 ? (
-                  <ScrollView
-                    style={styles.menuScroll}
-                    nestedScrollEnabled
-                    showsVerticalScrollIndicator
-                    persistentScrollbar
-                    keyboardShouldPersistTaps="handled"
-                  >
-                    {vehicules.map((vehicule) => (
-                      <Menu.Item
-                        key={vehicule.id}
-                        title={getNomVoiture(vehicule)}
-                        titleStyle={
-                          String(vehicule.id) === formData.vehicule_id
-                            ? styles.menuItemSelected
-                            : undefined
-                        }
-                        onPress={() => {
-                          handleChange('vehicule_id', String(vehicule.id));
-                          setVehiculeMenuVisible(false);
-                        }}
-                      />
-                    ))}
-                  </ScrollView>
-                ) : (
-                  <Menu.Item
-                    title="Aucune voiture disponible"
-                    onPress={() => setVehiculeMenuVisible(false)}
-                  />
-                )}
-              </Menu>
-            </View>
-
-            <View style={styles.selectContainer}>
-              <Text style={styles.selectLabel}>Chauffeur *</Text>
-
-              <Menu
-                visible={chauffeurMenuVisible}
-                onDismiss={() => setChauffeurMenuVisible(false)}
-                contentStyle={styles.menuContent}
-                anchor={
-                  <Button
-                    mode="outlined"
-                    onPress={() => setChauffeurMenuVisible(true)}
-                    disabled={loadingOptions}
-                    icon="account-tie"
-                    textColor={COLORS.primaryDark}
-                    style={styles.selectButton}
-                    contentStyle={styles.selectButtonContent}
-                  >
-                    {selectedChauffeur
-                      ? getNomChauffeur(selectedChauffeur)
-                      : loadingOptions
-                        ? 'Chargement...'
-                        : 'Sélectionner un chauffeur'}
-                  </Button>
-                }
-              >
-                {loadingOptions ? (
-                  <View style={styles.loadingMenu}>
-                    <ActivityIndicator
-                      size="small"
-                      color={COLORS.primary}
-                    />
-                    <Text style={styles.loadingText}>Chargement...</Text>
-                  </View>
-                ) : chauffeurs.length > 0 ? (
-                  <ScrollView
-                    style={styles.menuScroll}
-                    nestedScrollEnabled
-                    showsVerticalScrollIndicator
-                    persistentScrollbar
-                    keyboardShouldPersistTaps="handled"
-                  >
-                    {chauffeurs.map((chauffeur) => (
-                      <Menu.Item
-                        key={chauffeur.id}
-                        title={getNomChauffeur(chauffeur)}
-                        titleStyle={
-                          String(chauffeur.id) === formData.chauffeur_id
-                            ? styles.menuItemSelected
-                            : undefined
-                        }
-                        onPress={() => {
-                          handleChange('chauffeur_id', String(chauffeur.id));
-                          setChauffeurMenuVisible(false);
-                        }}
-                      />
-                    ))}
-                  </ScrollView>
-                ) : (
-                  <Menu.Item
-                    title="Aucun chauffeur disponible"
-                    onPress={() => setChauffeurMenuVisible(false)}
-                  />
-                )}
-              </Menu>
-            </View>
-
             <View style={styles.actions}>
               <Button
                 mode="outlined"
@@ -644,7 +336,7 @@ export default function AjouterReservation() {
                 buttonColor={COLORS.primary}
                 textColor={COLORS.surface}
                 loading={loading}
-                disabled={loading || loadingOptions}
+                disabled={loading}
               >
                 Enregistrer
               </Button>
@@ -660,83 +352,71 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
+
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   content: {
     padding: 16,
     paddingBottom: 32,
   },
+
   header: {
     marginBottom: 16,
   },
+
   title: {
     fontWeight: 'bold',
     color: COLORS.primaryDark,
   },
+
   subtitle: {
     marginTop: 4,
     color: COLORS.primary,
     opacity: 0.8,
   },
+
   card: {
     borderRadius: 16,
     backgroundColor: COLORS.surface,
     elevation: 4,
   },
+
   input: {
     marginBottom: 14,
     backgroundColor: COLORS.surface,
   },
-  selectContainer: {
+
+  infoBox: {
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#f1f8ff',
     marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#d6eaff',
   },
-  selectLabel: {
-    marginBottom: 6,
-    color: COLORS.primaryDark,
-    fontWeight: '600',
-  },
-  selectButton: {
-    borderRadius: 8,
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.surface,
-  },
-  selectButtonContent: {
-    justifyContent: 'flex-start',
-    minHeight: 52,
-  },
-  menuContent: {
-    backgroundColor: COLORS.surface,
-  },
-  menuScroll: {
-    maxHeight: 250,
-  },
-  menuItemSelected: {
-    color: COLORS.primaryDark,
-    fontWeight: 'bold',
-  },
-  loadingMenu: {
-    padding: 16,
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  loadingText: {
-    color: COLORS.primary,
+
+  infoText: {
     fontSize: 13,
+    color: COLORS.primaryDark,
+    lineHeight: 18,
   },
+
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
     marginTop: 12,
   },
+
   cancelButton: {
     flex: 1,
     borderRadius: 8,
     borderColor: COLORS.primary,
   },
+
   submitButton: {
     flex: 1,
     borderRadius: 8,
