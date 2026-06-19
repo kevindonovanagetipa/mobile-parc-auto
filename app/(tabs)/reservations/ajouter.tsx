@@ -132,7 +132,7 @@ const fetchAllPages = async (
 };
 
 const getNomVoiture = (vehicule: Vehicule): string => {
-  const nom = [vehicule.marque, vehicule.modele]
+  const nom = [vehicule.marque, vehicule.numero_immatriculation]
     .filter(Boolean)
     .join(' ')
     .trim();

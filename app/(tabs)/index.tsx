@@ -71,7 +71,7 @@ export default function Dashboard() {
       description: 'Créer une demande rapidement',
       icon: 'plus-circle',
       color: '#2e7d32',
-      route: '/reservations/ajout',
+      route: '/reservations/ajouter',
     },
   ];
 
