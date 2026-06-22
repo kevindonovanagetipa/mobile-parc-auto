@@ -27,6 +27,7 @@ const sections = [
     titre: 'Gestion',
     adminOnly: true,
     items: [
+      { label: 'Véhicules', icon: 'car', route: '/vehicules' },
       { label: 'Déplacements', icon: 'car-arrow-right', route: '/deplacements' },
       { label: 'Périodiques', icon: 'repeat', route: '/periodiques' },
     ],
