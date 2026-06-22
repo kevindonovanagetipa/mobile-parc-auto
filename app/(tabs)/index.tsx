@@ -1,5 +1,10 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { Card, Text, ActivityIndicator } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -42,22 +47,30 @@ type QuickActionItem = {
 export default function Dashboard() {
   const [stats, setStats] = useState<StatCardItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
   const quickActions: QuickActionItem[] = [
+    {
+      label: 'Véhicules disponibles',
+      description: 'Voir les véhicules disponibles',
+      icon: 'car',
+      color: '#3e0096',
+      route: '/vehicules',
+    },
+    {
+      label: 'Chauffeurs disponibles',
+      description: 'Voir les chauffeurs disponibles',
+      icon: 'account-tie',
+      color: '#da0000',
+      route: '/chauffeurs',
+    },
     {
       label: 'Mes réservations',
       description: 'Voir vos demandes de réservation',
       icon: 'calendar-check',
       color: '#ff6d00',
       route: '/reservations',
-    },
-    {
-      label: 'Mes courses',
-      description: 'Consulter vos courses',
-      icon: 'map-marker-path',
-      color: '#d50000',
-      route: '/courses',
     },
     {
       label: 'Notifications',
@@ -75,9 +88,12 @@ export default function Dashboard() {
     },
   ];
 
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = useCallback(async (showLoader = false) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
+
       setError('');
 
       const token = await AsyncStorage.getItem('token');
@@ -117,15 +133,15 @@ export default function Dashboard() {
         const statsFormatees: StatCardItem[] = [
           {
             label: 'Véhicules',
-            value: String(data.totalVehicules ?? 0),
+            value: String(data.vehiculesDisponibles ?? 0),
             icon: 'car',
             color: '#3e0096',
           },
           {
             label: 'Chauffeurs',
-            value: String(data.totalChauffeurs ?? 0),
+            value: String(data.chauffeursDisponibles ?? 0),
             icon: 'account-tie',
-            color: '#000b68',
+            color: '#e40c0c',
           },
           {
             label: 'Réservations',
@@ -137,7 +153,7 @@ export default function Dashboard() {
             label: 'Courses',
             value: String(data.totalCourses ?? 0),
             icon: 'map-marker-path',
-            color: '#d50000',
+            color: '#0080d5',
           },
         ];
 
@@ -149,16 +165,36 @@ export default function Dashboard() {
       console.log('Erreur API dashboard mobile :', err);
       setError('Impossible de contacter le serveur.');
     } finally {
-      setLoading(false);
-    }
-  };
+      if (showLoader) {
+        setLoading(false);
+      }
 
-  useEffect(() => {
-    fetchDashboardStats();
+      setRefreshing(false);
+    }
   }, []);
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchDashboardStats(false);
+  }, [fetchDashboardStats]);
+
+  useEffect(() => {
+    fetchDashboardStats(true);
+  }, [fetchDashboardStats]);
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[COLORS.primary]}
+          tintColor={COLORS.primary}
+        />
+      }
+    >
       {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />

@@ -20,6 +20,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -47,7 +48,7 @@ export default function Login() {
       await authService.login(email, password);
       router.replace(ROUTES.TABS);
     } catch (error: any) {
-      Alert.alert('Échec de connexion', error.message || 'Identifiants invalides');
+      Alert.alert('Invalides mot de passe ou Email', error.message || 'Identifiants invalides');
     } finally {
       setLoading(false);
     }
@@ -106,16 +107,23 @@ export default function Login() {
             />
 
             <TextInput
-              label="Mot de passe"
-              mode="outlined"
-              secureTextEntry
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              outlineColor={COLORS.primary}
-              activeOutlineColor={COLORS.primaryDark}
-              left={<TextInput.Icon icon="lock-outline" color={COLORS.primary} />}
-            />
+  label="Mot de passe"
+  mode="outlined"
+  secureTextEntry={!showPassword}
+  style={styles.input}
+  value={password}
+  onChangeText={setPassword}
+  outlineColor={COLORS.primary}
+  activeOutlineColor={COLORS.primaryDark}
+  left={<TextInput.Icon icon="lock-outline" color={COLORS.primary} />}
+  right={
+    <TextInput.Icon
+      icon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+      color={COLORS.primary}
+      onPress={() => setShowPassword(!showPassword)}
+    />
+  }
+/>
 
             <Button
               mode="contained"
