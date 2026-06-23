@@ -270,15 +270,12 @@ export default function TabsLayout() {
     tabBarStyle: {
       backgroundColor: COLORS.surface,
       borderTopColor: COLORS.border,
-      height: 65,           // ← hauteur totale augmentée
-  paddingBottom: 10,    // ← espace en bas
-  paddingTop: 4,
+      height: 60,
+      paddingBottom: 10,
     },
 
     tabBarLabelStyle: {
       fontSize: 12,
-      marginBottom: 0,
-      
     },
   }}
 >
