@@ -304,7 +304,6 @@ const createStyles = (COLORS: AppColors) => StyleSheet.create({
   card: {
     width: '47%',
     borderRadius: 14,
-    backgroundColor: COLORS.surface,
   },
   cardContent: {
     alignItems: 'center',
@@ -330,7 +329,6 @@ const createStyles = (COLORS: AppColors) => StyleSheet.create({
   },
   quickActionCard: {
     borderRadius: 12,
-    backgroundColor: COLORS.surface,
   },
   quickActionContent: {
     flexDirection: 'row',

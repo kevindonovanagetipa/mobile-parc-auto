@@ -47,11 +47,11 @@ function HeaderTitle({ COLORS }: { COLORS: AppColors }) {
         style={{
           fontSize: 20,
           fontWeight: '700',
-          color: COLORS.primaryDark,
+          color: COLORS.textTilte,
           letterSpacing: 0.5,
         }}
       >
-        Parc Auto
+        Parc 
       </Text>
     </View>
   );
@@ -79,7 +79,7 @@ function HeaderRightLogo({ notificationCount, onPressNotification, COLORS }: Hea
           position: 'relative',
         }}
       >
-        <MaterialCommunityIcons name="bell-outline" size={26} color={COLORS.primaryDark} />
+        <MaterialCommunityIcons name="bell-outline" size={26} color={COLORS.textTilte} />
         {notificationCount > 0 && (
           <View
             style={{
@@ -106,7 +106,14 @@ function HeaderRightLogo({ notificationCount, onPressNotification, COLORS }: Hea
 
       <Image
         source={logoAgetipa}
-        style={{ width: 78, height: 36 }}
+        style={{
+          width: 38,
+          height: 38,
+          borderWidth: 1.5,
+          borderColor: COLORS.primary,
+          borderRadius: 35,
+          backgroundColor: COLORS.surface,
+        }}
         resizeMode="contain"
       />
     </View>

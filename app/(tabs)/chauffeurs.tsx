@@ -266,7 +266,7 @@ export default function Chauffeurs() {
 const createStyles = (COLORS: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
     paddingTop: 5,
   },
   content: {
