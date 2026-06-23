@@ -18,6 +18,7 @@ import {
 } from 'react-native-paper';
 import { chauffeurService, Chauffeur } from '@/services/chauffeurService';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { COLORS } from '@/constants/colors';
 
 const BLUE_LIGHT = '#e6fde3';
 
@@ -176,7 +177,8 @@ export default function Chauffeurs() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Chargement des chauffeurs...</Text>
       </View>
     );
   }
@@ -322,10 +324,10 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
+    paddingVertical: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
   },
   errorText: {
     color: '#f44336',
@@ -343,4 +345,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
   },
+  loadingText: {
+      marginTop: 12,
+      color: COLORS.textSecondary,
+    },
 });

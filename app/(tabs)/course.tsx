@@ -241,7 +241,7 @@ export default function CourseScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={COLORS.primary}/>
         <Text style={styles.loadingText}>Chargement des courses...</Text>
       </View>
     );
@@ -606,10 +606,10 @@ const styles = StyleSheet.create({
 
   centerContainer: {
     flex: 1,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
+    paddingVertical: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
   },
 
   loadingText: {

@@ -25,17 +25,17 @@ const sections = [
   },
   {
     titre: 'Gestion',
-    adminOnly: true,
+    adminOnly: false,
     items: [
       { label: 'Véhicules', icon: 'car', route: '/vehicules' },
-      { label: 'Déplacements', icon: 'car-arrow-right', route: '/deplacements' },
-      { label: 'Périodiques', icon: 'repeat', route: '/periodiques' },
     ],
   },
   {
     titre: 'Maintenance',
     adminOnly: true,
     items: [
+      { label: 'Déplacements', icon: 'car-arrow-right', route: '/deplacements' },
+      { label: 'Périodiques', icon: 'repeat', route: '/periodiques' },
       { label: 'Réparations', icon: 'wrench', route: '/reparations' },
       { label: 'Carburant', icon: 'gas-station', route: '/carburant' },
       { label: 'Kilométrage', icon: 'speedometer', route: '/kilometrage' },
@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
   centered: {
     flex: 1,
     backgroundColor: COLORS.background,
+    paddingVertical: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },

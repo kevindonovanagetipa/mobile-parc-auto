@@ -250,15 +250,16 @@ export default function Reservations() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Chargement des reservations...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centered}>
+      <View style={styles.loadingContainer}>
         <MaterialCommunityIcons
           name="alert-circle-outline"
           size={48}
@@ -464,12 +465,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
 
-  centered: {
+  loadingContainer: {
     flex: 1,
     backgroundColor: COLORS.background,
+    paddingVertical: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
   },
 
   errorText: {
@@ -483,6 +484,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
+  },
+
+  loadingText: {
+    marginTop: 12,
+    color: COLORS.textSecondary,
   },
 
   emptyText: {
