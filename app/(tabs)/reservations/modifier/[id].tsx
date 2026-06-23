@@ -19,7 +19,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { API_BASE_URL } from '@/constants/api';
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 import {
   reservationService,
   UpdateReservationPayload,
@@ -189,6 +189,8 @@ const formatTimeInput = (value?: string) => {
 };
 
 export default function ModifierReservation() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [loadingPage, setLoadingPage] = useState(true);
@@ -765,7 +767,7 @@ export default function ModifierReservation() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   keyboardView: {
     flex: 1,
   },

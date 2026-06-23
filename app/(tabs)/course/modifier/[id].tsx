@@ -10,7 +10,7 @@ import {
 import { ActivityIndicator, Button, Card, Menu, Text, TextInput } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 import { ROUTES } from '@/constants/routes';
 import { CoursePayload, MoyenLocomotion, courseService } from '@/services/courseService';
 
@@ -34,6 +34,7 @@ const MOYENS_LOCOMOTION: MoyenLocomotion[] = [
 
 const MOYENS_LOCOMOTION_LABELS: Record<MoyenLocomotion, string> = {
   'à pied': 'À pied',
+  'a pied': 'À pied',
   'moto': 'Moto',
   'bus': 'Bus',
   'voiture': 'Voiture',
@@ -81,6 +82,8 @@ const buildPayload = (formData: CourseFormData): CoursePayload => ({
 });
 
 export default function ModifierCourse() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [loadingPage, setLoadingPage] = useState(true);
@@ -354,7 +357,7 @@ export default function ModifierCourse() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   keyboardView: {
     flex: 1,
   },

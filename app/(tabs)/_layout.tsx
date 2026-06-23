@@ -5,7 +5,7 @@ import { Image, Platform, Pressable, Text, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 
-import { COLORS } from '@/constants/colors';
+import { useAppColors, type AppColors } from '@/constants/colors';
 import { connectSocketWithAuth, socket } from '@/services/socket';
 
 // @ts-ignore: Asset import type declarations
@@ -28,7 +28,7 @@ type HeaderRightLogoProps = {
   onPressNotification: () => void;
 };
 
-function HeaderTitle() {
+function HeaderTitle({ COLORS }: { COLORS: AppColors }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       <Image
@@ -57,7 +57,7 @@ function HeaderTitle() {
   );
 }
 
-function HeaderRightLogo({ notificationCount, onPressNotification }: HeaderRightLogoProps) {
+function HeaderRightLogo({ notificationCount, onPressNotification, COLORS }: HeaderRightLogoProps & { COLORS: AppColors }) {
   return (
     <View
       style={{
@@ -192,6 +192,7 @@ async function afficherNotificationLocale(notification: any, type: string) {
 }
 
 export default function TabsLayout() {
+  const COLORS = useAppColors();
   const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
@@ -245,11 +246,12 @@ export default function TabsLayout() {
     <Tabs
   screenOptions={{
     headerShown: true,
-    headerTitle: () => <HeaderTitle />,
+    headerTitle: () => <HeaderTitle COLORS={COLORS} />,
     headerRight: () => (
       <HeaderRightLogo
         notificationCount={notificationCount}
         onPressNotification={handleNotificationPress}
+        COLORS={COLORS}
       />
     ),
     headerTitleAlign: 'left',

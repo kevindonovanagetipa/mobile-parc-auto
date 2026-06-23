@@ -17,7 +17,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { ROUTES } from '@/constants/routes';
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 import {
   NotificationItem,
   notificationService,
@@ -82,6 +82,8 @@ function isReservationNotification(notification: NotificationItem) {
 }
 
 export default function NotificationsScreen() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const router = useRouter();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -310,7 +312,7 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

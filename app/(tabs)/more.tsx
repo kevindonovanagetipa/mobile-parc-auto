@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ROUTES } from '@/constants/routes';
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 
 type User = {
   id: number;
@@ -52,6 +52,8 @@ const sections = [
 ];
 
 export default function More() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
@@ -164,7 +166,7 @@ export default function More() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

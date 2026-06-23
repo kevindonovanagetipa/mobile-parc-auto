@@ -14,9 +14,11 @@ import { router } from 'expo-router';
 
 import { ROUTES } from '@/constants/routes';
 import { authService } from '@/services/authService';
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 
 export default function Login() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -144,7 +146,7 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   keyboardView: {
     flex: 1,
     backgroundColor: COLORS.background,

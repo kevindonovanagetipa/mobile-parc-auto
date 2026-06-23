@@ -18,8 +18,8 @@ import {
 } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { vehiculeService, Vehicule } from '@/services/vehiculeService';
+import { type AppColors, useAppColors } from '@/constants/colors';
 
-const BLUE_LIGHT = '#e6fde3';
 
 type SortOption = 'date_desc' | 'date_asc' | 'marque_asc' | 'marque_desc';
 
@@ -135,7 +135,7 @@ function formatKilometrage(value?: number | string | null) {
   return `${numberValue.toLocaleString('fr-FR')} km`;
 }
 
-function VehiculeCard({ v }: { v: Vehicule }) {
+function VehiculeCard({ v, styles }: { v: Vehicule; styles: ReturnType<typeof createStyles> }) {
   const dispo = getDisponibiliteConfig(v.disponibilite);
   const statut = getStatutConfig(v.statut);
   const titre = getVehiculeTitre(v);
@@ -234,6 +234,8 @@ function VehiculeCard({ v }: { v: Vehicule }) {
 }
 
 export default function Vehicules() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [vehicules, setVehicules] = useState<Vehicule[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -409,7 +411,7 @@ export default function Vehicules() {
 
       {filteredVehicules.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <MaterialCommunityIcons name="car-search-outline" size={48} color="#999" />
+          <MaterialCommunityIcons name="car-search-outline" size={48} color={COLORS.iconMuted} />
           <Text style={styles.emptyText}>
             {searchQuery
               ? 'Aucun véhicule ne correspond à votre recherche'
@@ -417,16 +419,16 @@ export default function Vehicules() {
           </Text>
         </View>
       ) : (
-        filteredVehicules.map((v) => <VehiculeCard key={v.id} v={v} />)
+        filteredVehicules.map((v) => <VehiculeCard key={v.id} v={v} styles={styles} />)
       )}
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
     paddingTop: 5,
   },
   content: {
@@ -438,17 +440,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   searchInput: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.inputSurface,
   },
   searchInputOutline: {
     borderRadius: 14,
-    borderColor: '#d6e4f0',
+    borderColor: COLORS.mutedBorder,
   },
   sortButton: {
     alignSelf: 'flex-start',
     borderRadius: 14,
     borderColor: '#1976d2',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.inputSurface,
   },
   sortButtonLabel: {
     color: '#1976d2',
@@ -457,7 +459,7 @@ const styles = StyleSheet.create({
   },
   resultText: {
     marginBottom: 12,
-    color: '#607d8b',
+    color: COLORS.textSecondary,
     fontSize: 13,
     fontWeight: '500',
   },
@@ -476,7 +478,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   detailText: {
-    color: '#666',
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   chips: {
@@ -487,7 +489,7 @@ const styles = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    backgroundColor: BLUE_LIGHT,
+    backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
@@ -505,7 +507,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 12,
-    color: '#777',
+    color: COLORS.emptyText,
     fontSize: 15,
     textAlign: 'center',
   },

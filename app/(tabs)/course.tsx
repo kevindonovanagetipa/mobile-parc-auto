@@ -21,7 +21,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { router } from 'expo-router';
 
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 import { ROUTES } from '@/constants/routes';
 import { Course, courseService } from '@/services/courseService';
 
@@ -145,6 +145,8 @@ const getSortLabel = (sortOption: SortOption) => {
 };
 
 export default function CourseScreen() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -355,7 +357,7 @@ export default function CourseScreen() {
             <MaterialCommunityIcons
               name="map-marker-off-outline"
               size={48}
-              color="#999"
+              color={COLORS.iconMuted}
             />
 
             <Text style={styles.emptyText}>
@@ -417,7 +419,7 @@ export default function CourseScreen() {
                         <MaterialCommunityIcons
                           name="calendar"
                           size={18}
-                          color="#666"
+                          color={COLORS.textSecondary}
                         />
 
                         <Text variant="bodySmall" style={styles.detailText}>
@@ -429,7 +431,7 @@ export default function CourseScreen() {
                         <MaterialCommunityIcons
                           name="clock-outline"
                           size={18}
-                          color="#666"
+                          color={COLORS.textSecondary}
                         />
 
                         <Text variant="bodySmall" style={styles.detailText}>
@@ -441,7 +443,7 @@ export default function CourseScreen() {
                         <MaterialCommunityIcons
                           name="clock-check-outline"
                           size={18}
-                          color="#666"
+                          color={COLORS.textSecondary}
                         />
 
                         <Text variant="bodySmall" style={styles.detailText}>
@@ -453,7 +455,7 @@ export default function CourseScreen() {
                         <MaterialCommunityIcons
                           name="account-tie"
                           size={18}
-                          color="#666"
+                          color={COLORS.textSecondary}
                         />
 
                         <Text variant="bodySmall" style={styles.detailText}>
@@ -465,7 +467,7 @@ export default function CourseScreen() {
                         <MaterialCommunityIcons
                           name="account"
                           size={18}
-                          color="#666"
+                          color={COLORS.textSecondary}
                         />
 
                         <Text variant="bodySmall" style={styles.detailText}>
@@ -477,7 +479,7 @@ export default function CourseScreen() {
                         <MaterialCommunityIcons
                           name="map-marker-path"
                           size={18}
-                          color="#666"
+                          color={COLORS.textSecondary}
                         />
 
                         <Text variant="bodySmall" style={styles.detailText}>
@@ -503,7 +505,7 @@ export default function CourseScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: BLUE_LIGHT,
@@ -522,19 +524,19 @@ const styles = StyleSheet.create({
 
   searchInput: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.inputSurface,
   },
 
   searchInputOutline: {
     borderRadius: 14,
-    borderColor: '#d6e4f0',
+    borderColor: COLORS.mutedBorder,
   },
 
   sortButton: {
     alignSelf: 'flex-start',
     borderRadius: 14,
     borderColor: '#1976d2',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.inputSurface,
   },
 
   sortButtonLabel: {
@@ -545,7 +547,7 @@ const styles = StyleSheet.create({
 
   resultText: {
     marginBottom: 12,
-    color: '#607d8b',
+    color: COLORS.textSecondary,
     fontSize: 13,
     fontWeight: '500',
   },
@@ -576,11 +578,11 @@ const styles = StyleSheet.create({
 
   objet: {
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: COLORS.text,
   },
 
   destination: {
-    color: '#666',
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
 
@@ -600,7 +602,7 @@ const styles = StyleSheet.create({
   },
 
   detailText: {
-    color: '#555',
+    color: COLORS.textSecondary,
     flex: 1,
   },
 
@@ -614,7 +616,7 @@ const styles = StyleSheet.create({
 
   loadingText: {
     marginTop: 12,
-    color: '#666',
+    color: COLORS.textSecondary,
   },
 
   errorText: {
@@ -641,7 +643,7 @@ const styles = StyleSheet.create({
 
   emptyText: {
     marginTop: 12,
-    color: '#777',
+    color: COLORS.emptyText,
     fontSize: 15,
     textAlign: 'center',
   },

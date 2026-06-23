@@ -48,3 +48,15 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Mode sombre
+
+L'application détecte automatiquement le thème du téléphone avec `useColorScheme()` depuis React Native, compatible avec Expo SDK 54. Les écrans principaux utilisent `useAppColors()` pour relire les couleurs quand le système passe du mode clair au mode sombre.
+
+Les couleurs neutres du thème sont centralisées dans `constants/colors.ts` :
+
+- `LIGHT_COLORS` conserve le rendu clair historique ;
+- `DARK_COLORS` remplace uniquement les textes noirs, surfaces blanches, fonds et bordures neutres par des valeurs lisibles en mode sombre ;
+- `useAppColors()` est le point d'entrée à utiliser dans les pages et composants.
+
+Pour respecter le design actuel, ne changez pas les couleurs de marque ou fonctionnelles dans le cadre du mode sombre : `primary`, `primaryDark`, `success`, `warning`, `error`, `info`, ainsi que les couleurs de boutons, statuts, badges et icônes déjà colorées. Ajustez uniquement les neutres (`text`, `textSecondary`, `background`, `surface`, `inputSurface`, `border`, `mutedBorder`) lorsqu'un texte, un fond ou une bordure devient illisible.
