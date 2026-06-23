@@ -10,7 +10,7 @@ import {
 import { Button, Card, Menu, Text, TextInput } from 'react-native-paper';
 import { router } from 'expo-router';
 
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 import { ROUTES } from '@/constants/routes';
 import {
   CoursePayload,
@@ -78,6 +78,8 @@ const buildPayload = (formData: CourseFormData): CoursePayload => {
 };
 
 export default function AjouterCourse() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [loading, setLoading] = useState(false);
   const [moyenMenuVisible, setMoyenMenuVisible] = useState(false);
 
@@ -351,7 +353,7 @@ export default function AjouterCourse() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   keyboardView: {
     flex: 1,
   },

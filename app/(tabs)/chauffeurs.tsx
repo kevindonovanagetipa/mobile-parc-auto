@@ -18,7 +18,7 @@ import {
 } from 'react-native-paper';
 import { chauffeurService, Chauffeur } from '@/services/chauffeurService';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 
 const BLUE_LIGHT = '#e6fde3';
 
@@ -63,7 +63,7 @@ function getSortLabel(sortOption: SortOption) {
   }
 }
 
-function ChauffeurCard({ c }: { c: Chauffeur }) {
+function ChauffeurCard({ c, styles }: { c: Chauffeur; styles: ReturnType<typeof createStyles> }) {
   const couleur = getCouleur(c.disponibilite);
   const nomComplet = getNomComplet(c);
 
@@ -107,6 +107,8 @@ function ChauffeurCard({ c }: { c: Chauffeur }) {
 }
 
 export default function Chauffeurs() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [chauffeurs, setChauffeurs] = useState<Chauffeur[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -247,7 +249,7 @@ export default function Chauffeurs() {
 
       {filteredChauffeurs.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <MaterialCommunityIcons name="account-search-outline" size={48} color="#999" />
+          <MaterialCommunityIcons name="account-search-outline" size={48} color={COLORS.iconMuted} />
           <Text style={styles.emptyText}>
             {searchQuery
               ? 'Aucun chauffeur ne correspond à votre recherche'
@@ -255,13 +257,13 @@ export default function Chauffeurs() {
           </Text>
         </View>
       ) : (
-        filteredChauffeurs.map((c) => <ChauffeurCard key={c.id} c={c} />)
+        filteredChauffeurs.map((c) => <ChauffeurCard key={c.id} c={c} styles={styles} />)
       )}
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: BLUE_LIGHT,
@@ -276,17 +278,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   searchInput: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.inputSurface,
   },
   searchInputOutline: {
     borderRadius: 14,
-    borderColor: '#d6e4f0',
+    borderColor: COLORS.mutedBorder,
   },
   sortButton: {
     alignSelf: 'flex-start',
     borderRadius: 14,
     borderColor: '#1976d2',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.inputSurface,
   },
   sortButtonLabel: {
     color: '#1976d2',
@@ -295,7 +297,7 @@ const styles = StyleSheet.create({
   },
   resultText: {
     marginBottom: 12,
-    color: '#607d8b',
+    color: COLORS.textSecondary,
     fontSize: 13,
     fontWeight: '500',
   },
@@ -314,7 +316,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   tel: {
-    color: '#666',
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   chips: {
@@ -341,7 +343,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 12,
-    color: '#777',
+    color: COLORS.emptyText,
     fontSize: 15,
     textAlign: 'center',
   },

@@ -20,7 +20,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 import { ROUTES } from '@/constants/routes';
-import { COLORS } from '@/constants/colors';
+import { COLORS, type AppColors, useAppColors } from '@/constants/colors';
 import { reservationService, Reservation } from '@/services/reservationService';
 
 const STATUT_CONFIG: Record<string, { label: string; couleur: string }> = {
@@ -82,7 +82,7 @@ function getStatutLabel(statut: string) {
   return STATUT_CONFIG[statut]?.label ?? statut;
 }
 
-function ReservationCard({ r }: { r: Reservation }) {
+function ReservationCard({ r, styles, COLORS }: { r: Reservation; styles: ReturnType<typeof createStyles>; COLORS: AppColors }) {
   const statut = STATUT_CONFIG[r.statut] ?? {
     label: r.statut,
     couleur: COLORS.textSecondary,
@@ -162,6 +162,8 @@ function ReservationCard({ r }: { r: Reservation }) {
 }
 
 export default function Reservations() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -365,7 +367,7 @@ export default function Reservations() {
           </View>
         ) : (
           filteredReservations.map((r) => (
-            <ReservationCard key={r.id} r={r} />
+            <ReservationCard key={r.id} r={r} styles={styles} COLORS={COLORS} />
           ))
         )}
       </ScrollView>
@@ -380,7 +382,7 @@ export default function Reservations() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 5,
@@ -399,19 +401,19 @@ const styles = StyleSheet.create({
 
    searchInput: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.inputSurface,
   },
 
  searchInputOutline: {
     borderRadius: 14,
-    borderColor: '#d6e4f0',
+    borderColor: COLORS.mutedBorder,
   },
 
   sortButton: {
     alignSelf: 'flex-start',
     borderRadius: 14,
     borderColor: '#1976d2',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.inputSurface,
   },
 
   sortButtonLabel: {

@@ -19,7 +19,7 @@ import { router } from 'expo-router';
 
 import { authService, User } from '@/services/authService';
 import { ROUTES } from '@/constants/routes';
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 
 const getInitials = (user?: User | null) => {
   if (!user) return 'U';
@@ -50,6 +50,8 @@ const formatPrivilege = (privilege?: string) => {
 };
 
 export default function ProfilUtilisateur() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -281,7 +283,7 @@ export default function ProfilUtilisateur() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

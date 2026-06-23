@@ -17,7 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
 import { ROUTES } from '@/constants/routes';
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 import { reservationService } from '@/services/reservationService';
 
 type ReservationFormData = {
@@ -49,6 +49,8 @@ const normalizeHeure = (heure: string): string => {
 };
 
 export default function AjouterReservation() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState<ReservationFormData>({
@@ -348,7 +350,7 @@ export default function AjouterReservation() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   keyboardView: {
     flex: 1,
   },

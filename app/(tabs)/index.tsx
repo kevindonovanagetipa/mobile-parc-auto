@@ -11,7 +11,7 @@ import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { API_BASE_URL } from '@/constants/api';
-import { COLORS } from '@/constants/colors';
+import { type AppColors, useAppColors } from '@/constants/colors';
 
 type DashboardStats = {
   totalVehicules: number;
@@ -45,6 +45,8 @@ type QuickActionItem = {
 };
 
 export default function Dashboard() {
+  const COLORS = useAppColors();
+  const styles = createStyles(COLORS);
   const [stats, setStats] = useState<StatCardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -284,7 +286,7 @@ export default function Dashboard() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
