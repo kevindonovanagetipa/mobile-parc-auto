@@ -374,7 +374,7 @@ export default function CourseScreen() {
               <TouchableOpacity
                 key={course.id}
                 activeOpacity={0.8}
-                onPress={() => goToUpdateCourse(course.id)}
+              //  onPress={() => goToUpdateCourse(course.id)} 
               >
                 <Card style={styles.card}>
                   <Card.Content>
@@ -494,13 +494,13 @@ export default function CourseScreen() {
           })
         )}
       </ScrollView>
-
+{/**
       <FAB
         icon="plus"
         style={styles.fab}
         color={COLORS.surface}
         onPress={goToAddCourse}
-      />
+      /> */}
     </>
   );
 }

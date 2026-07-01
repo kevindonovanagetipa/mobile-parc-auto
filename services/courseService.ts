@@ -133,17 +133,12 @@ export const courseService = {
   async getCourses(page = 1, limit = 100): Promise<Course[]> {
   const url = `${getBaseUrl()}/api/courses?page=${page}&limit=${limit}`;
 
-  console.log('URL courses utilisée :', url);
-
   const response = await fetch(url, {
     method: 'GET',
     headers: await getAuthHeaders(),
   });
 
   const json = await parseResponse(response);
-
-  console.log('GET /api/courses status:', response.status);
-  console.log('GET /api/courses json:', JSON.stringify(json, null, 2));
 
   if (!response.ok) {
     throw new Error(

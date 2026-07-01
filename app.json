@@ -58,8 +58,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "f34bbaed-5fbd-4cff-8295-e3cf51c2061e"
+        "projectId": "fcb05652-6cb2-4db3-890a-6b3d6786a775"
       }
-    }
+    },
+    "owner": "agetipa-tech"
   }
 }
